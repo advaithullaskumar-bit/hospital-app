@@ -36,8 +36,7 @@ Follow these steps to set up the project locally on your machine.
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/advaithullaskumar-bit/hospital-app.git
-   cd hospital-app/hospital_app_upgraded
+   
 Create a virtual environment (Recommended):
 
 bash
