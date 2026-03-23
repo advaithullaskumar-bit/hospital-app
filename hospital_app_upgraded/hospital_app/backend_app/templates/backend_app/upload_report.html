@@ -1,0 +1,114 @@
+{% extends 'backend_app/admin_layout.html' %}
+
+{% block page_title %}Digital Diagnostics{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto; padding: 3rem;">
+    <h2 style="font-weight: 800; color: var(--text-dark); margin-bottom: 2rem; text-align: center;">Upload Diagnostic
+        Report</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #718096;">Select
+                    Patient</label>
+                <select name="patient_profile" class="neu-btn" style="width: 100%; text-align: left; padding: 1rem;"
+                    required>
+                    {% for p in patients %}
+                    <option value="{{ p.id }}" {% if request.GET.patient==p.id|stringformat:"i" %}selected{% endif %}>{{
+                        p.patient_name }} (ID: {{ p.id }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #718096;">Quick Select
+                    Report Category</label>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem;">
+                    <button type="button" class="neu-btn type-tile" onclick="setType('blood_test', this)"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 1rem; border: 2px solid transparent;">
+                        <span style="font-size: 1.5rem;">🧪</span>
+                        <span style="font-size: 0.8rem; font-weight: 800;">BLOOD</span>
+                    </button>
+                    <button type="button" class="neu-btn type-tile" onclick="setType('xray', this)"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 1rem; border: 2px solid transparent;">
+                        <span style="font-size: 1.5rem;">🩻</span>
+                        <span style="font-size: 0.8rem; font-weight: 800;">X-RAY</span>
+                    </button>
+                    <button type="button" class="neu-btn type-tile" onclick="setType('mri', this)"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 1rem; border: 2px solid transparent;">
+                        <span style="font-size: 1.5rem;">🧠</span>
+                        <span style="font-size: 0.8rem; font-weight: 800;">MRI</span>
+                    </button>
+                    <button type="button" class="neu-btn type-tile" onclick="setType('ct_scan', this)"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 1rem; border: 2px solid transparent;">
+                        <span style="font-size: 1.5rem;">🌀</span>
+                        <span style="font-size: 0.8rem; font-weight: 800;">CT SCAN</span>
+                    </button>
+                    <button type="button" class="neu-btn type-tile" onclick="setType('ecg', this)"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 1rem; border: 2px solid transparent;">
+                        <span style="font-size: 1.5rem;">📈</span>
+                        <span style="font-size: 0.8rem; font-weight: 800;">ECG</span>
+                    </button>
+                    <button type="button" class="neu-btn type-tile" onclick="setType('other', this)"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 1rem; border: 2px solid transparent;">
+                        <span style="font-size: 1.5rem;">📄</span>
+                        <span style="font-size: 0.8rem; font-weight: 800;">OTHER</span>
+                    </button>
+                </div>
+                <input type="hidden" name="report_type" id="report_type_input" required>
+                <script>
+                    function setType(type, el) {
+                        document.getElementById('report_type_input').value = type;
+                        document.querySelectorAll('.type-tile').forEach(b => {
+                            b.style.borderColor = 'transparent';
+                            b.style.color = '#4a5568';
+                        });
+                        el.style.borderColor = 'var(--brand-color)';
+                        el.style.color = 'var(--brand-color)';
+                    }
+                </script>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #718096;">Test
+                        Date</label>
+                    <input type="date" name="report_date" class="neu-btn" style="width: 100%; padding: 1rem;" required
+                        id="datePicker">
+                    <script>document.getElementById('datePicker').valueAsDate = new Date();</script>
+                </div>
+            </div>
+
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #718096;">Report
+                    Title</label>
+                <input type="text" name="title" class="neu-btn" style="width: 100%; padding: 1rem;"
+                    placeholder="e.g. CBC Analysis, Chest X-Ray" required>
+            </div>
+
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #718096;">Select File
+                    (PDF/Image)</label>
+                <div class="neu-panel" style="padding: 2rem; border: 2px dashed #cbd5e0; text-align: center;">
+                    <input type="file" name="report_file" required>
+                </div>
+            </div>
+
+            <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700; color: #718096;">Clinical Notes
+                    (Optional)</label>
+                <textarea name="description" rows="4" class="neu-btn"
+                    style="width: 100%; padding: 1rem; border-radius: 12px;"></textarea>
+            </div>
+
+            <button type="submit" class="neu-btn"
+                style="width: 100%; justify-content: center; margin-top: 2rem; background: var(--brand-color); color: white; border: none; font-size: 1.1rem; padding: 1.2rem;">
+                SECURELY UPLOAD TO EHR
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

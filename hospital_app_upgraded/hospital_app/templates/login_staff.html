@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CityCare – Staff Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --primary:#1d4ed8; --accent:#0f766e; --bg:#020617;
+      --card:#ffffff; --text-main:#111827; --text-muted:#6b7280;
+      --border-soft:#e5e7eb; --shadow:0 20px 50px rgba(15,23,42,0.55);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+    body{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:
+        radial-gradient(circle at 0 0,#1d4ed8,transparent 55%),
+        radial-gradient(circle at 100% 100%,#0f766e,transparent 55%),
+        linear-gradient(180deg,#020617,#020617);
+      padding:16px;
+    }
+    .shell{
+      width:100%;max-width:900px;
+      background:rgba(15,23,42,0.9);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);
+      overflow:hidden;
+    }
+    .hero{
+      padding:24px 24px 20px;
+      color:#e5e7eb;
+    }
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .logo{
+      width:44px;height:44px;border-radius:16px;
+      background:conic-gradient(from 210deg,#22c55e,#0ea5e9,#22c55e);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:800;font-size:19px;
+      box-shadow:0 0 0 3px rgba(15,23,42,0.7);
+    }
+    .brand h1{font-size:20px;}
+    .brand p{font-size:12px;color:#cbd5f5;}
+    .hero h2{font-size:22px;margin-bottom:6px;}
+    .hero p{font-size:13px;color:#cbd5f5;margin-bottom:8px;max-width:340px;}
+    .hero ul{list-style:none;font-size:12px;}
+    .hero li{margin-bottom:4px;display:flex;gap:6px;align-items:center;}
+    .hero li span{font-size:14px;}
+    .hero small{font-size:11px;color:#9ca3af;display:block;margin-top:10px;}
+
+    .card{
+      background:var(--card);
+      padding:22px 20px 18px;
+      color:var(--text-main);
+    }
+    .card h2{font-size:18px;margin-bottom:4px;}
+    .card .subtitle{font-size:12px;color:var(--text-muted);margin-bottom:12px;}
+
+    form{display:grid;gap:9px;font-size:13px;}
+    .field-group{display:flex;flex-direction:column;gap:3px;}
+    label{font-size:11px;color:var(--text-muted);}
+    input,select{
+      width:100%;padding:8px 10px;border-radius:10px;
+      border:1px solid var(--border-soft);font-size:13px;
+      background:#f9fafb;
+    }
+    .phone-row{display:grid;grid-template-columns:0.9fr 2.1fr;gap:8px;}
+    .helper{font-size:11px;color:var(--text-muted);}
+    .error{font-size:11px;color:#b91c1c;min-height:14px;}
+    .remember-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-top:4px;}
+    .remember-row label{display:flex;align-items:center;gap:5px;color:var(--text-muted);}
+    .remember-row a{color:#1d4ed8;text-decoration:none;}
+    .remember-row a:hover{text-decoration:underline;}
+
+    .btn{
+      margin-top:8px;width:100%;padding:9px;
+      border-radius:999px;border:none;cursor:pointer;
+      background:linear-gradient(90deg,#1d4ed8,#0f766e);
+      color:#ffffff;font-size:14px;
+      box-shadow:0 12px 26px rgba(37,99,235,0.5);
+    }
+    .link-row{margin-top:10px;font-size:11px;color:var(--text-muted);text-align:center;}
+    .link-row a{color:#1d4ed8;text-decoration:none;}
+    .link-row a:hover{text-decoration:underline;}
+
+    @media(max-width:760px){
+      .shell{grid-template-columns:1fr;}
+      .hero{display:none;}
+      .card{padding:20px 16px 16px;}
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <section class="hero" aria-hidden="true">
+    <div class="brand">
+      <div class="logo">HC</div>
+      <div>
+        <h1>CityCare Hospital</h1>
+        <p>Staff access · internal use only</p>
+      </div>
+    </div>
+    <h2>Welcome, CityCare staff</h2>
+    <p>Use your registered phone number and password to open the OPD and beds dashboard.</p>
+    <ul>
+      <li><span>✓</span><span>View live queue and tokens.</span></li>
+      <li><span>✓</span><span>Create and manage OP bookings.</span></li>
+      <li><span>✓</span><span>Check beds, ICU and oxygen status.</span></li>
+    </ul>
+    <small>Do not share your login outside hospital staff.</small>
+  </section>
+
+  <section class="card" aria-label="Staff login form">
+    <h2>Staff sign in</h2>
+    <p class="subtitle">Enter phone and password to continue.</p>
+
+    <form id="staffLoginForm" novalidate>
+      <div class="field-group">
+        <label for="staffPhone">Phone number</label>
+        <div class="phone-row">
+          <select id="staffCountryCode" name="countryCode">
+            <option value="+91">+91 India</option>
+            <option value="+971">+971 UAE</option>
+            <option value="+1">+1 USA</option>
+          </select>
+          <input id="staffPhone" name="phone" type="tel"
+                 placeholder="10‑digit mobile"
+                 pattern="[0-9]{10}" minlength="10" maxlength="10" required />
+        </div>
+        <div class="helper">Use the mobile number registered with CityCare.</div>
+        <div id="staffPhoneError" class="error"></div>
+      </div>
+
+      <div class="field-group">
+        <label for="staffPassword">Password</label>
+        <input id="staffPassword" name="password" type="password"
+               minlength="6" required placeholder="Enter your password" />
+        <div id="staffPasswordError" class="error"></div>
+      </div>
+
+      <div class="remember-row">
+        <label>
+          <input id="rememberStaff" type="checkbox" />
+          Remember this device
+        </label>
+        <a href="#" onclick="alert('Ask IT admin to reset your password.');return false;">Forgot password?</a>
+      </div>
+
+      <button class="btn" type="submit">Continue</button>
+
+      <div class="link-row">
+        <a href="/">Back to welcome page</a>
+      </div>
+    </form>
+  </section>
+</div>
+
+<script>
+  const staffLoginForm = document.getElementById("staffLoginForm");
+  const staffPhoneInput = document.getElementById("staffPhone");
+  const staffCountryCodeSelect = document.getElementById("staffCountryCode");
+  const staffPasswordInput = document.getElementById("staffPassword");
+  const staffPhoneError = document.getElementById("staffPhoneError");
+  const staffPasswordError = document.getElementById("staffPasswordError");
+
+  function validateStaffPhone() {
+    const v = staffPhoneInput.value.trim();
+    if (!v) { staffPhoneError.textContent = "Phone number is required."; return false; }
+    if (!/^[0-9]{10}$/.test(v)) { staffPhoneError.textContent = "Enter a valid 10‑digit mobile number."; return false; }
+    staffPhoneError.textContent = ""; return true;
+  }
+  function validateStaffPassword() {
+    const v = staffPasswordInput.value;
+    if (!v) { staffPasswordError.textContent = "Password is required."; return false; }
+    if (v.length < 6) { staffPasswordError.textContent = "Password must be at least 6 characters."; return false; }
+    staffPasswordError.textContent = ""; return true;
+  }
+
+  staffPhoneInput.addEventListener("input", validateStaffPhone);
+  staffPasswordInput.addEventListener("input", validateStaffPassword);
+
+  staffLoginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!validateStaffPhone() || !validateStaffPassword()) return;
+
+    const payload = {
+      countryCode: staffCountryCodeSelect.value,
+      phone: staffPhoneInput.value.trim(),
+      password: staffPasswordInput.value
+    };
+
+    try {
+      const res = await fetch("/login/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!data.ok) {
+        alert(data.message || "Staff login failed");
+        return;
+      }
+
+      window.location.href = data.redirect || "/dashboard";
+    } catch (err) {
+      console.error(err);
+      alert("Network error – please try again.");
+    }
+  });
+</script>
+</body>
+</html>

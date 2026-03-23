@@ -1,0 +1,70 @@
+{% extends 'backend_app/admin_layout.html' %}
+{% block page_title %}Patient Directory{% endblock %}
+{% block content %}
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+    <h3 style="font-weight:800;color:var(--text-dark);margin:0;">Electronic Health Records
+      <span id="patientCount" style="font-size:0.8rem;font-weight:600;color:#718096;margin-left:0.75rem;"></span>
+    </h3>
+    <div style="display:flex;gap:0.75rem;align-items:center;">
+      <input type="text" id="searchInput" placeholder="Search by name or ID..." 
+        style="padding:0.55rem 1rem;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;font-size:0.9rem;color:#2d3748;outline:none;width:260px;transition:border-color 0.2s;"
+        oninput="filterPatients()" onfocus="this.style.borderColor='#3182ce'" onblur="this.style.borderColor='#e2e8f0'">
+    </div>
+  </div>
+  <table class="table" id="patientTable">
+    <thead>
+      <tr>
+        <th>Patient ID</th><th>Full Name</th><th>Age</th><th>Blood Group</th><th>Contact</th><th>Registered</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="patientTableBody">
+      {% for patient in patients %}
+      <tr class="patient-row" data-name="{{ patient.patient_name|lower }}" data-id="{{ patient.id }}">
+        <td style="font-weight:700;color:#718096;">#{{ patient.id }}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3182ce,#2c5282);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:0.85rem;flex-shrink:0;">
+              {{ patient.patient_name|first|upper }}
+            </div>
+            <div>
+              <div style="font-weight:800;color:var(--brand-color);">{{ patient.patient_name }}</div>
+              {% if patient.allergies %}<div style="font-size:0.7rem;color:#e53e3e;">⚠ {{ patient.allergies|truncatechars:25 }}</div>{% endif %}
+            </div>
+          </div>
+        </td>
+        <td style="font-weight:700;">{{ patient.patient_age }}</td>
+        <td><span style="font-weight:800;color:#e53e3e;">{{ patient.blood_group|default:"—" }}</span></td>
+        <td>{{ patient.phone|default:"—" }}</td>
+        <td style="font-size:0.85rem;">{{ patient.created_at|date:"d M Y" }}</td>
+        <td><a href="{% url 'patient_profile' patient.id %}" class="neu-btn" style="padding:0.45rem 1rem;font-size:0.8rem;color:var(--brand-color);">VIEW EHR ↗</a></td>
+      </tr>
+      {% empty %}
+      <tr id="emptyRow"><td colspan="7" style="text-align:center;padding:3rem;color:#a0aec0;">No patient records in the system.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div id="noResults" style="display:none;text-align:center;padding:2.5rem;color:#a0aec0;">No patients match your search.</div>
+</div>
+
+<script>
+  const rows = document.querySelectorAll('.patient-row');
+  const countEl = document.getElementById('patientCount');
+  function updateCount(n) { countEl.textContent = n + ' patient' + (n !== 1 ? 's' : ''); }
+  updateCount(rows.length);
+
+  function filterPatients() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    let visible = 0;
+    rows.forEach(row => {
+      const name = row.getAttribute('data-name');
+      const id = row.getAttribute('data-id');
+      const match = !q || name.includes(q) || id.includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    updateCount(visible);
+    document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+  }
+</script>
+{% endblock %}

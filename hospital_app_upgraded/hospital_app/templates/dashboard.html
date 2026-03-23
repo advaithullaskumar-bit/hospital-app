@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CityCare – OPD Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root{
+      --bg:#0f172a;--bg-light:#f5f7fb;--surface:#ffffff;
+      --primary:#1d4ed8;--accent:#0f766e;
+      --text-main:#111827;--text-muted:#4b5563;
+      --border-soft:#cbd5e1;--focus:#f97316;
+      --radius-lg:18px;--shadow:0 18px 45px rgba(15,23,42,0.55);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+    body{
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 0 0,#1d4ed8,transparent 55%),
+        radial-gradient(circle at 100% 100%,#0f766e,transparent 55%),
+        linear-gradient(180deg,#020617,#020617);
+      color:var(--text-main);
+      display:flex;align-items:stretch;justify-content:center;
+      padding:14px;
+    }
+    .shell{
+      width:100%;max-width:1180px;
+      background:var(--bg-light);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      display:flex;
+    }
+    /* Sidebar */
+    .sidebar{
+      width:230px;
+      background:#020617;
+      color:#e5e7eb;
+      padding:16px 12px 14px;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .sb-brand{
+      display:flex;align-items:center;gap:8px;margin-bottom:4px;
+    }
+    .sb-logo{
+      width:34px;height:34px;border-radius:12px;
+      background:conic-gradient(from 210deg,#22c55e,#0ea5e9,#22c55e);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:16px;
+    }
+    .sb-brand h1{font-size:16px;}
+    .sb-brand p{font-size:11px;color:#9ca3af;}
+    .user-box{
+      border-radius:14px;
+      background:rgba(15,23,42,0.9);
+      padding:10px 10px 8px;
+      font-size:12px;
+    }
+    .user-box strong{display:block;font-size:13px;}
+    .nav{
+      margin-top:4px;
+      border-top:1px solid rgba(148,163,184,0.6);
+      padding-top:8px;
+      font-size:13px;
+    }
+    .nav-title{
+      font-size:11px;color:#9ca3af;
+      text-transform:uppercase;
+      margin-bottom:6px;
+    }
+    .nav-item{
+      display:flex;align-items:center;gap:8px;
+      padding:7px 8px;
+      border-radius:10px;
+      cursor:pointer;
+      color:#e5e7eb;
+      text-decoration:none;
+      margin-bottom:2px;
+      transition:background .18s,transform .18s;
+    }
+    .nav-item span.icon{font-size:16px;}
+    .nav-item.active,.nav-item:hover{
+      background:linear-gradient(90deg,#1d4ed8,#0f766e);
+      transform:translateX(2px);
+    }
+    .nav-bottom{
+      margin-top:auto;
+      font-size:11px;
+      color:#9ca3af;
+    }
+    .nav-bottom a{color:#93c5fd;text-decoration:none;}
+    .nav-bottom a:hover{text-decoration:underline;}
+
+    /* Main area */
+    .main{
+      flex:1;
+      padding:14px 16px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:6px;
+    }
+    .topbar h2{font-size:18px;}
+    .topbar small{font-size:11px;color:var(--text-muted);}
+    .lang-box{display:flex;align-items:center;gap:6px;font-size:11px;}
+    .lang-box select{
+      padding:2px 8px;border-radius:999px;border:1px solid var(--border-soft);
+      font-size:11px;
+    }
+    .widgets-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    .widget{
+      border-radius:var(--radius-lg);
+      background:var(--surface);
+      border:1px solid var(--border-soft);
+      padding:10px 12px;
+      font-size:12px;
+      box-shadow:0 8px 20px rgba(15,23,42,0.08);
+    }
+    .widget h3{font-size:13px;margin-bottom:4px;}
+    .widget strong{font-size:18px;}
+    .content-panel{
+      margin-top:4px;
+      border-radius:var(--radius-lg);
+      background:var(--surface);
+      border:1px solid var(--border-soft);
+      padding:12px 14px 14px;
+      box-shadow:0 10px 24px rgba(15,23,42,0.08);
+      min-height:260px;
+    }
+    .panel-header{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:8px;font-size:13px;
+    }
+    .panel-header h3{font-size:15px;}
+    .panel-header small{font-size:11px;color:var(--text-muted);}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th,td{padding:6px 6px;text-align:left;}
+    th{
+      border-bottom:1px solid var(--border-soft);
+      text-transform:uppercase;
+      font-size:10px;
+      color:var(--text-muted);
+      letter-spacing:0.04em;
+    }
+    tbody tr:nth-child(even){background:#f9fafb;}
+    .pill{
+      display:inline-block;padding:2px 8px;border-radius:999px;
+      font-size:11px;font-weight:500;
+    }
+    .pill.waiting{background:#e0e7ff;color:#1d4ed8;}
+    .pill.in-room{background:#bbf7d0;color:#166534;}
+    .pill.low{background:#fef3c7;color:#92400e;}
+    .pill.good{background:#bbf7d0;color:#065f46;}
+    .info-text{font-size:11px;color:var(--text-muted);margin-top:6px;}
+
+    /* Booking form in panel */
+    .booking-form{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px 10px;
+      font-size:13px;
+      margin-top:4px;
+    }
+    .booking-form label{display:block;margin-bottom:2px;font-size:11px;color:var(--text-muted);}
+    .booking-form input,.booking-form select{
+      width:100%;padding:7px 9px;border-radius:10px;
+      border:1px solid var(--border-soft);font-size:13px;background:#f9fafb;
+    }
+    .booking-form button{
+      grid-column:1 / -1;margin-top:8px;padding:8px;
+      border-radius:999px;border:none;
+      background:linear-gradient(90deg,#1d4ed8,#16a34a);
+      color:#ffffff;font-size:13px;cursor:pointer;
+    }
+    .booking-list{margin-top:8px;border-top:1px dashed #e5e7eb;padding-top:6px;font-size:12px;max-height:140px;overflow-y:auto;}
+    .booking-item{padding:4px 0;border-bottom:1px dotted #e5e7eb;}
+    .booking-item span{font-weight:600;color:#1d4ed8;}
+    .booking-empty{font-size:11px;color:#9ca3af;}
+
+    .hidden{display:none;}
+
+    @media(max-width:900px){
+      .shell{flex-direction:column;}
+      .sidebar{flex-direction:row;overflow-x:auto;width:100%;}
+      .nav{flex:1;margin-top:0;border-top:none;padding-top:0;display:flex;flex-wrap:wrap;gap:4px;}
+      .nav-item{margin-bottom:0;}
+      .nav-bottom{display:none;}
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sb-brand">
+        <div class="sb-logo">HC</div>
+        <div>
+          <h1 data-i18n="title">CityCare Hospital</h1>
+          <p data-i18n="subtitle">OPD dashboard</p>
+        </div>
+      </div>
+      <div class="user-box">
+        <strong id="userRoleLabel" data-i18n="userRole">Staff / patient</strong>
+        <span id="userPhoneLabel" data-i18n="userPhone">Phone: demo</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-title" data-i18n="navWidgets">Widgets</div>
+      <a class="nav-item active" data-panel="queuePanel">
+        <span class="icon">📋</span><span data-i18n="navQueue">OPD queue</span>
+      </a>
+      <a class="nav-item" data-panel="bookingPanel">
+        <span class="icon">📅</span><span data-i18n="navBooking">Book OP ticket</span>
+      </a>
+      <a class="nav-item" data-panel="bedsPanel">
+        <span class="icon">🏥</span><span data-i18n="navBeds">Beds & oxygen</span>
+      </a>
+      <a class="nav-item" data-panel="messagesPanel">
+        <span class="icon">🔔</span><span data-i18n="navMessages">Messages</span>
+      </a>
+    </nav>
+
+    <div class="nav-bottom">
+      <span data-i18n="navLogged">Logged in via phone.</span><br />
+      <a href="/" data-i18n="navLogout">Log out &amp; back to welcome</a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h2 data-i18n="topTitle">CityCare OPD overview</h2>
+        <small data-i18n="topSubtitle">Use the left sidebar to switch between widgets.</small>
+      </div>
+      <div class="lang-box">
+        <label for="langSelect" data-i18n="languageLabel">Language:</label>
+        <select id="langSelect">
+          <option value="en">English</option>
+          <option value="hi">हिन्दी</option>
+          <option value="ml">മലയാളം</option>
+        </select>
+      </div>
+    </header>
+
+    <section class="widgets-row">
+      <div class="widget">
+        <h3 data-i18n="statWaitingTitle">Patients waiting</h3>
+        <strong id="statWaiting">23</strong>
+        <div class="info-text" data-i18n="statWaitingText">Across all departments (sample data).</div>
+      </div>
+      <div class="widget">
+        <h3 data-i18n="statTokensTitle">Tokens today</h3>
+        <strong id="statTokens">82</strong>
+        <div class="info-text" data-i18n="statTokensText">Total OP tokens issued (demo).</div>
+      </div>
+      <div class="widget">
+        <h3 data-i18n="statBedsTitle">Beds free</h3>
+        <strong id="statBeds">41</strong>
+        <div class="info-text" data-i18n="statBedsText">Ward + Casualty + ICU (demo).</div>
+      </div>
+    </section>
+
+    <!-- QUEUE PANEL -->
+    <section id="queuePanel" class="content-panel">
+      <div class="panel-header">
+        <h3 data-i18n="sectionQueueTitle">OPD queue (example)</h3>
+        <small data-i18n="sectionQueueSmall">Sample data only – connect to live system later.</small>
+      </div>
+      <table aria-label="Example OPD queue">
+        <thead>
+          <tr>
+            <th data-i18n="thToken">Token</th>
+            <th data-i18n="thPatient">Patient</th>
+            <th data-i18n="thDoctor">Doctor</th>
+            <th data-i18n="thDept">Dept</th>
+            <th data-i18n="thStatus">Status</th>
+            <th data-i18n="thTime">Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>OP‑021</td><td>Rahul</td><td>Dr. Rao</td><td data-i18n="specCardiology">Heart</td><td><span class="pill in-room" data-i18n="statusInRoom">Inside</span></td><td>–</td></tr>
+          <tr><td>OP‑022</td><td>Priya</td><td>Dr. Rao</td><td data-i18n="specCardiology">Heart</td><td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td><td>~ 6 min</td></tr>
+          <tr><td>OP‑045</td><td>Mohammed</td><td>Dr. Iyer</td><td data-i18n="specOrtho">Bones</td><td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td><td>~ 12 min</td></tr>
+          <tr><td>OP‑052</td><td>Lakshmi</td><td>Dr. Menon</td><td data-i18n="specPedia">Children</td><td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td><td>~ 8 min</td></tr>
+          <tr><td>OP‑010</td><td>Arun</td><td>Dr. Das</td><td data-i18n="specGeneral">General</td><td><span class="pill" data-i18n="statusCompleted">Finished</span></td><td>–</td></tr>
+        </tbody>
+      </table>
+      <p class="info-text" data-i18n="queueNote">
+        In a real deployment this table will update automatically as tokens are called.
+      </p>
+    </section>
+
+    <!-- BOOKING PANEL -->
+    <section id="bookingPanel" class="content-panel hidden">
+      <div class="panel-header">
+        <h3 data-i18n="sectionBookingTitle">Book an OP ticket</h3>
+        <small data-i18n="sectionBookingSmall">Filled by staff or self‑service kiosk.</small>
+      </div>
+      <form class="booking-form" id="bookingForm" method="post" action="/api/book">
+        <div>
+          <label for="pname" data-i18n="labelName">Patient name</label>
+          <input id="pname" name="pname" type="text" placeholder="Write full name" />
+        </div>
+        <div>
+          <label for="page" data-i18n="labelAge">Age</label>
+          <input id="page" name="page" type="number" min="0" placeholder="Age" />
+        </div>
+        <div>
+          <label for="dept" data-i18n="labelDept">Department</label>
+          <select id="dept" name="dept">
+            <option data-i18n="specCardiology">Heart</option>
+            <option data-i18n="specOrtho">Bones</option>
+            <option data-i18n="specPedia">Children</option>
+            <option data-i18n="specGeneral">General</option>
+          </select>
+        </div>
+        <div>
+          <label for="doc" data-i18n="labelDoctor">Doctor</label>
+          <select id="doc" name="doc">
+            <option>Dr. Rao</option><option>Dr. Iyer</option><option>Dr. Menon</option>
+            <option data-i18n="optAnyDoc">Any doctor</option>
+          </select>
+        </div>
+        <div>
+          <label for="date" data-i18n="labelDate">Date</label>
+          <input id="date" name="date" type="date" />
+        </div>
+        <div>
+          <label for="slot" data-i18n="labelSlot">Time</label>
+          <select id="slot" name="slot">
+            <option data-i18n="slotMorning">Morning</option>
+            <option data-i18n="slotAfternoon">Afternoon</option>
+          </select>
+        </div>
+        <button type="submit" data-i18n="btnGenerate">Get OP token</button>
+      </form>
+      <div class="booking-list" id="bookingList">
+        <div class="booking-empty" data-i18n="bookingEmpty">
+          When you book, tokens will appear here.
+        </div>
+      </div>
+      <p class="info-text" data-i18n="bookingNote">
+        This demo sends bookings to the backend JSON file via /api/book.
+      </p>
+    </section>
+
+    <!-- BEDS PANEL -->
+    <section id="bedsPanel" class="content-panel hidden">
+      <div class="panel-header">
+        <h3 data-i18n="sectionResourcesTitle">Beds & oxygen status</h3>
+        <small data-i18n="sectionResourcesSmall">Sample values. Replace with live data later.</small>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="thResource">Area</th>
+            <th data-i18n="thStatus">Status</th>
+            <th data-i18n="thDetails">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-i18n="resCasualtyBeds">Casualty</td>
+            <td><span class="pill low" data-i18n="resCasualtyStatus">3 beds free</span></td>
+            <td data-i18n="resCasualtyDetails">9 used / 12 total</td>
+          </tr>
+          <tr>
+            <td data-i18n="resWardBeds">Ward rooms</td>
+            <td><span class="pill good" data-i18n="resWardStatus">Many beds free</span></td>
+            <td data-i18n="resWardDetails">56 used / 80 total</td>
+          </tr>
+          <tr>
+            <td data-i18n="resICUBeds">ICU</td>
+            <td><span class="pill low" data-i18n="resICUStatus">2 beds free</span></td>
+            <td data-i18n="resICUDetails">Very sick patients first</td>
+          </tr>
+          <tr>
+            <td data-i18n="resOxygen">Oxygen cylinders</td>
+            <td><span class="pill low" data-i18n="resOxygenStatus">26 in use</span></td>
+            <td data-i18n="resOxygenDetails">10 kept ready as backup</td>
+          </tr>
+          <tr>
+            <td data-i18n="resBlood">Blood bank</td>
+            <td><span class="pill good" data-i18n="resBloodStatus">OK</span></td>
+            <td data-i18n="resBloodDetails">O- and B- low, others OK</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="info-text" data-i18n="resourcesNote">
+        Staff can use this panel to quickly check pressure in emergency areas.
+      </p>
+    </section>
+
+    <!-- MESSAGES PANEL -->
+    <section id="messagesPanel" class="content-panel hidden">
+      <div class="panel-header">
+        <h3 data-i18n="updatesTitle">Important messages</h3>
+        <small data-i18n="updatesSmall">Notices auto‑scroll on the big waiting hall screen.</small>
+      </div>
+      <ul style="font-size:12px;list-style:none;">
+        <li data-i18n="msg1">• If you feel very unwell, go to the Casualty desk, not just the queue.</li>
+        <li data-i18n="msg2">• Children, pregnant women and very old patients may get priority.</li>
+        <li data-i18n="msg3">• Orthopedics doctor will start about 30 minutes late today.</li>
+        <li data-i18n="msg4">• You can change language and zoom level on the public kiosks.</li>
+      </ul>
+      <p class="info-text" data-i18n="updatesNote">
+        Later you can allow staff to add, edit and schedule messages here.
+      </p>
+    </section>
+  </main>
+</div>
+
+<script>
+  // Sidebar navigation
+  const navItems = document.querySelectorAll(".nav-item");
+  const panels = {
+    queuePanel: document.getElementById("queuePanel"),
+    bookingPanel: document.getElementById("bookingPanel"),
+    bedsPanel: document.getElementById("bedsPanel"),
+    messagesPanel: document.getElementById("messagesPanel")
+  };
+
+  navItems.forEach(item => {
+    item.addEventListener("click", () => {
+      const target = item.getAttribute("data-panel");
+      navItems.forEach(n => n.classList.remove("active"));
+      item.classList.add("active");
+      Object.keys(panels).forEach(key => {
+        panels[key].classList.toggle("hidden", key !== target);
+      });
+    });
+  });
+
+  // Booking + backend hooks
+  const bookingForm = document.getElementById("bookingForm");
+  const bookingList = document.getElementById("bookingList");
+  const DRAFT_KEY = "citycare_booking_draft";
+
+  function renderBookings(bookings) {
+    bookingList.innerHTML = "";
+    if (!bookings.length) {
+      const d = document.createElement("div");
+      d.className = "booking-empty";
+      d.setAttribute("data-i18n", "bookingEmpty");
+      d.textContent = translations[currentLang].bookingEmpty;
+      bookingList.appendChild(d);
+      return;
+    }
+    bookings.forEach(b => {
+      const div = document.createElement("div");
+      div.className = "booking-item";
+      div.innerHTML =
+        `<span>${b.token}</span> – ${b.name}, ${b.age} yrs · ${b.dept}, ${b.doc} · ${b.date} (${b.slot})`;
+      bookingList.appendChild(div);
+    });
+  }
+
+  async function loadBookings() {
+    try {
+      const res = await fetch("/api/bookings");
+      const data = await res.json();
+      renderBookings(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function saveDraft() {
+    const d = {
+      pname: bookingForm.pname.value,
+      page: bookingForm.page.value,
+      dept: bookingForm.dept.value,
+      doc: bookingForm.doc.value,
+      date: bookingForm.date.value,
+      slot: bookingForm.slot.value
+    };
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+  }
+  function prefillDraft() {
+    const saved = localStorage.getItem(DRAFT_KEY);
+    if (!saved) return;
+    try {
+      const d = JSON.parse(saved);
+      Object.keys(d).forEach(k => {
+        if (bookingForm[k]) bookingForm[k].value = d[k];
+      });
+    } catch(e) { console.error(e); }
+  }
+
+  bookingForm.addEventListener("input", saveDraft);
+  bookingForm.addEventListener("change", saveDraft);
+
+  bookingForm.addEventListener("submit", async e => {
+    e.preventDefault();
+    const fd = new FormData(bookingForm);
+    const name = fd.get("pname").trim();
+    const age = fd.get("page").trim();
+    const date = fd.get("date").trim();
+    if (!name || !age || !date) {
+      alert(translations[currentLang].alertFill);
+      return;
+    }
+    try {
+      const res = await fetch("/api/book", { method:"POST", body: fd });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        alert(data.message || "Error saving booking");
+        return;
+      }
+      alert(translations[currentLang].alertToken + " " + data.token);
+      bookingForm.reset();
+      localStorage.removeItem(DRAFT_KEY);
+      await loadBookings();
+    } catch(err) {
+      console.error(err);
+      alert("Network error – please try again.");
+    }
+  });
+
+  // Translations (copied from index-style config, extended with widget keys)
+  const translations = {
+    en: {
+      title: "CityCare Hospital",
+      subtitle: "OPD dashboard",
+      userRole: "Staff / patient",
+      userPhone: "Phone: demo",
+      navWidgets: "Widgets",
+      navQueue: "OPD queue",
+      navBooking: "Book OP ticket",
+      navBeds: "Beds & oxygen",
+      navMessages: "Messages",
+      navLogged: "Logged in via phone.",
+      navLogout: "Log out & back to welcome",
+      topTitle: "CityCare OPD overview",
+      topSubtitle: "Use the left sidebar to switch between widgets.",
+      languageLabel: "Language:",
+      statWaitingTitle: "Patients waiting",
+      statWaitingText: "Across all departments (sample data).",
+      statTokensTitle: "Tokens today",
+      statTokensText: "Total OP tokens issued (demo).",
+      statBedsTitle: "Beds free",
+      statBedsText: "Ward + Casualty + ICU (demo).",
+      sectionQueueTitle: "OPD queue (example)",
+      sectionQueueSmall: "Sample data only – connect to live system later.",
+      thToken: "Token",
+      thPatient: "Patient",
+      thDoctor: "Doctor",
+      thDept: "Dept",
+      thStatus: "Status",
+      thTime: "Time",
+      statusInRoom: "Inside",
+      statusWaiting: "Waiting",
+      statusCompleted: "Finished",
+      queueNote: "In a real deployment this table will update automatically as tokens are called.",
+      specCardiology: "Heart",
+      specOrtho: "Bones",
+      specPedia: "Children",
+      specGeneral: "General",
+      sectionBookingTitle: "Book an OP ticket",
+      sectionBookingSmall: "Filled by staff or self‑service kiosk.",
+      labelName: "Patient name",
+      labelAge: "Age",
+      labelDept: "Department",
+      labelDoctor: "Doctor",
+      labelDate: "Date",
+      labelSlot: "Time",
+      optAnyDoc: "Any doctor",
+      slotMorning: "Morning",
+      slotAfternoon: "Afternoon",
+      btnGenerate: "Get OP token",
+      bookingEmpty: "When you book, tokens will appear here.",
+      bookingNote: "This demo sends bookings to the backend JSON file via /api/book.",
+      sectionResourcesTitle: "Beds & oxygen status",
+      sectionResourcesSmall: "Sample values. Replace with live data later.",
+      thResource: "Area",
+      thDetails: "Details",
+      resCasualtyBeds: "Casualty",
+      resCasualtyStatus: "3 beds free",
+      resCasualtyDetails: "9 used / 12 total",
+      resWardBeds: "Ward rooms",
+      resWardStatus: "Many beds free",
+      resWardDetails: "56 used / 80 total",
+      resICUBeds: "ICU",
+      resICUStatus: "2 beds free",
+      resICUDetails: "Very sick patients first",
+      resOxygen: "Oxygen cylinders",
+      resOxygenStatus: "26 in use",
+      resOxygenDetails: "10 kept ready as backup",
+      resBlood: "Blood bank",
+      resBloodStatus: "OK",
+      resBloodDetails: "O- and B- low, others OK",
+      resourcesNote: "Staff can use this panel to quickly check pressure in emergency areas.",
+      updatesTitle: "Important messages",
+      updatesSmall: "Notices auto‑scroll on the big waiting hall screen.",
+      msg1: "• If you feel very unwell, go to the Casualty desk, not just the queue.",
+      msg2: "• Children, pregnant women and very old patients may get priority.",
+      msg3: "• Orthopedics doctor will start about 30 minutes late today.",
+      msg4: "• You can change language and zoom level on the public kiosks.",
+      updatesNote: "Later you can allow staff to add, edit and schedule messages here.",
+      alertFill: "Please fill name, age and date.",
+      alertToken: "Your token number is"
+    },
+    hi: {
+      title: "सिटीकेयर अस्पताल",
+      subtitle: "OPD डैशबोर्ड",
+      userRole: "स्टाफ / मरीज",
+      userPhone: "फोन: डेमो",
+      navWidgets: "विजेट",
+      navQueue: "OPD कतार",
+      navBooking: "OP टिकट बुक करें",
+      navBeds: "बेड और ऑक्सीजन",
+      navMessages: "संदेश",
+      navLogged: "फोन के माध्यम से लॉगिन किया गया।",
+      navLogout: "लॉगआउट करें और वेलकम स्क्रीन पर लौटें",
+      topTitle: "सिटीकेयर OPD ओवरव्यू",
+      topSubtitle: "बाएँ साइडबार से अलग‑अलग विजेट चुनें।",
+      languageLabel: "भाषा:",
+      statWaitingTitle: "प्रतीक्षा कर रहे मरीज",
+      statWaitingText: "सभी विभागों में (उदाहरण डेटा)।",
+      statTokensTitle: "आज के टोकन",
+      statTokensText: "कुल जारी OP टोकन (डेमो)।",
+      statBedsTitle: "खाली बेड",
+      statBedsText: "वार्ड + कैज़ुअल्टी + ICU (डेमो)।",
+      sectionQueueTitle: "OPD कतार (उदाहरण)",
+      sectionQueueSmall: "केवल उदाहरण डेटा – बाद में लाइव सिस्टम से जोड़ें।",
+      thToken: "टोकन",
+      thPatient: "मरीज",
+      thDoctor: "डॉक्टर",
+      thDept: "विभाग",
+      thStatus: "स्थिति",
+      thTime: "समय",
+      statusInRoom: "अंदर",
+      statusWaiting: "प्रतीक्षा",
+      statusCompleted: "पूरा",
+      queueNote: "असली सिस्टम में टोकन कॉल होते ही यह टेबल अपने आप बदल जाएगी।",
+      specCardiology: "हार्ट",
+      specOrtho: "हड्डी",
+      specPedia: "बच्चे",
+      specGeneral: "जनरल",
+      sectionBookingTitle: "OP टिकट बुक करें",
+      sectionBookingSmall: "स्टाफ या सेल्फ‑सर्विस कियोस्क द्वारा भरा जाता है।",
+      labelName: "मरीज का नाम",
+      labelAge: "उम्र",
+      labelDept: "विभाग",
+      labelDoctor: "डॉक्टर",
+      labelDate: "तारीख",
+      labelSlot: "समय",
+      optAnyDoc: "कोई भी डॉक्टर",
+      slotMorning: "सुबह",
+      slotAfternoon: "दोपहर",
+      btnGenerate: "OP टोकन प्राप्त करें",
+      bookingEmpty: "आप बुक करेंगे तो टोकन यहाँ दिखाई देंगे।",
+      bookingNote: "यह डेमो /api/book के माध्यम से बैकएंड JSON फ़ाइल में सेव करता है।",
+      sectionResourcesTitle: "बेड और ऑक्सीजन स्थिति",
+      sectionResourcesSmall: "उदाहरण मान। बाद में लाइव डेटा जोड़ें।",
+      thResource: "क्षेत्र",
+      thDetails: "विवरण",
+      resCasualtyBeds: "कैज़ुअल्टी",
+      resCasualtyStatus: "3 बेड खाली",
+      resCasualtyDetails: "9 भरे / 12 कुल",
+      resWardBeds: "वार्ड रूम",
+      resWardStatus: "काफ़ी बेड खाली",
+      resWardDetails: "56 भरे / 80 कुल",
+      resICUBeds: "ICU",
+      resICUStatus: "2 बेड खाली",
+      resICUDetails: "बहुत गंभीर मरीज पहले",
+      resOxygen: "ऑक्सीजन सिलिंडर",
+      resOxygenStatus: "26 उपयोग में",
+      resOxygenDetails: "10 बैकअप में तैयार",
+      resBlood: "ब्लड बैंक",
+      resBloodStatus: "ठीक",
+      resBloodDetails: "O- और B- कम, बाकी ठीक।",
+      resourcesNote: "स्टाफ इस पैनल से आपातकालीन क्षेत्रों का दबाव जल्दी देख सकते हैं।",
+      updatesTitle: "महत्वपूर्ण संदेश",
+      updatesSmall: "संदेश बड़े वेटिंग हॉल स्क्रीन पर ऑटो‑स्क्रॉल होते हैं।",
+      msg1: "• बहुत तकलीफ हो तो केवल कतार में न रहें, सीधे कैज़ुअल्टी डेस्क पर जाएँ।",
+      msg2: "• बच्चों, गर्भवती महिलाओं और बहुत बुज़ुर्ग मरीजों को प्राथमिकता मिल सकती है।",
+      msg3: "• हड्डी विभाग के डॉक्टर आज लगभग 30 मिनट देर से आएँगे।",
+      msg4: "• आप पब्लिक कियोस्क पर भाषा और ज़ूम स्तर बदल सकते हैं।",
+      updatesNote: "बाद में आप यहाँ से संदेश जोड़ना, बदलना और शेड्यूल करना शुरू कर सकते हैं।",
+      alertFill: "कृपया नाम, उम्र और तारीख भरें।",
+      alertToken: "आपका टोकन नंबर है"
+    },
+    ml: {
+      title: "സിറ്റികെയർ ആശുപത്രി",
+      subtitle: "OPD ഡാഷ്ബോർഡ്",
+      userRole: "സ്റ്റാഫ് / രോഗി",
+      userPhone: "ഫോൺ: ഡെമോ",
+      navWidgets: "വിഡ്ജറ്റുകൾ",
+      navQueue: "OPD ക്യൂ",
+      navBooking: "OP ടിക്കറ്റ് ബുക്ക്",
+      navBeds: "ബെഡുകളും ഓക്സിജനും",
+      navMessages: "സന്ദേശങ്ങൾ",
+      navLogged: "ഫോൺ ഉപയോഗിച്ച് ലോഗിൻ ചെയ്തു.",
+      navLogout: "ലോഗ് ഔട്ട് ചെയ്ത് വെൽക്കം സ്ക്രീനിലേക്ക് മടങ്ങുക",
+      topTitle: "സിറ്റികെയർ OPD ഓവർവ്യൂ",
+      topSubtitle: "ഇടത് സൈഡ്‌ബാർ ഉപയോഗിച്ച് വ്യത്യസ്ത വിഡ്ജറ്റുകൾ തിരഞ്ഞെടുക്കുക.",
+      languageLabel: "ഭാഷ:",
+      statWaitingTitle: "കാത്തിരിക്കുന്ന രോഗികൾ",
+      statWaitingText: "എല്ലാ വകുപ്പുകളിലുമായി (ഡെമോ ഡാറ്റ).",
+      statTokensTitle: "ഇന്നത്തെ ടോക്കൺ",
+      statTokensText: "മൊത്തം OP ടോക്കൺ (ഡെമോ).",
+      statBedsTitle: "ഒഴിവുള്ള ബെഡുകൾ",
+      statBedsText: "വാർഡ് + കാസ്വൽട്ടി + ICU (ഡെമോ).",
+      sectionQueueTitle: "OPD ക്യൂ (ഉദാഹരണം)",
+      sectionQueueSmall: "ഡെമോ ഡാറ്റ മാത്രം – പിന്നീട് ലൈവ് സിസ്റ്റത്തിൽ കൂട്ടിച്ചേർക്കാം.",
+      thToken: "ടോക്കൺ",
+      thPatient: "രോഗി",
+      thDoctor: "ഡോക്ടർ",
+      thDept: "ഡിപ്പാർട്ട്‌മെന്റ്",
+      thStatus: "സ്ഥിതി",
+      thTime: "സമയം",
+      statusInRoom: "അകത്ത്",
+      statusWaiting: "കാത്തിരിക്കുന്നു",
+      statusCompleted: "പൂർത്തിയായത്",
+      queueNote: "യഥാർത്ഥ സിസ്റ്റത്തിൽ ടോക്കൺ വിളിക്കുമ്പോൾ ടേബിൾ സ്വയം അപ്‌ഡേറ്റ് ചെയ്യും.",
+      specCardiology: "ഹാർട്ട്",
+      specOrtho: "എലുംബ്",
+      specPedia: "കുട്ടികൾ",
+      specGeneral: "ജനറൽ",
+      sectionBookingTitle: "OP ടിക്കറ്റ് ബുക്ക് ചെയ്യുക",
+      sectionBookingSmall: "സ്റ്റാഫ് അല്ലെങ്കിൽ സ്വയം സേവന കിയോസ്‌ക് വഴി.",
+      labelName: "രോഗിയുടെ പേര്",
+      labelAge: "പ്രായം",
+      labelDept: "ഡിപ്പാർട്ട്‌മെന്റ്",
+      labelDoctor: "ഡോക്ടർ",
+      labelDate: "തീയതി",
+      labelSlot: "സമയം",
+      optAnyDoc: "ഏതെങ്കിലും ഡോക്ടർ",
+      slotMorning: "രാവിലെ",
+      slotAfternoon: "ഉച്ചയ്ക്ക്",
+      btnGenerate: "OP ടോക്കൺ നേടുക",
+      bookingEmpty: "നിങ്ങൾ ബുക്ക് ചെയ്‌താൽ ടോക്കൺ ഇവിടെ കാണിക്കും.",
+      bookingNote: "ഈ ഡെമോ /api/book വഴി ബാക്ക്‌എൻഡ് JSON ഫയലിൽ സേവ് ചെയ്യും.",
+      sectionResourcesTitle: "ബെഡുകളും ഓക്സിജനും",
+      sectionResourcesSmall: "ഉദാഹരണ മൂല്യങ്ങൾ. പിന്നീട് ലൈവ് ഡാറ്റ ഉപയോഗിക്കുക.",
+      thResource: "പ്രദേശം",
+      thDetails: "വിശദാംശങ്ങൾ",
+      resCasualtyBeds: "കാസ്വൽട്ടി",
+      resCasualtyStatus: "3 ബെഡ് ഒഴിവ്",
+      resCasualtyDetails: "9 ഉപയോഗം / 12 മൊത്തം",
+      resWardBeds: "വാർഡ് റൂം",
+      resWardStatus: "നിരവധി ബെഡ് ഒഴിവ്",
+      resWardDetails: "56 ഉപയോഗം / 80 മൊത്തം",
+      resICUBeds: "ICU",
+      resICUStatus: "2 ബെഡ് ഒഴിവ്",
+      resICUDetails: "വളരെ സീരിയസ് രോഗികൾക്ക് ആദ്യം മുൻഗണന.",
+      resOxygen: "ഓക്സിജൻ സിലിണ്ടറുകൾ",
+      resOxygenStatus: "26 ഉപയോഗത്തിൽ",
+      resOxygenDetails: "10 ബാക്കപ് ആയി തയ്യാറാണ്",
+      resBlood: "ബ്ലഡ് ബാങ്ക്",
+      resBloodStatus: "ശരി",
+      resBloodDetails: "O- आणि B- കുറവ്, മറ്റ് ഗ്രൂപ്പ്‌കൾ ഒക്കെ ശരി.",
+      resourcesNote: "എമർജൻസി ഏരിയയിലെ സമ്മർദ്ദം പെട്ടെന്ന് മനസ്സിലാക്കാൻ സ്റ്റാഫിന് ഇത് സഹായിക്കും.",
+      updatesTitle: "പ്രധാന സന്ദേശങ്ങൾ",
+      updatesSmall: "വെയിറ്റിംഗ് ഹാൾ സ്ക്രീനിൽ സന്ദേശങ്ങൾ ഓട്ടോ സ്ക്രോൾ ചെയ്യും.",
+      msg1: "• നിങ്ങൾക്ക് വളരെ അസ്വസ്ഥതയുണ്ടെങ്കിൽ, ക്യൂയിൽ മാത്രം നിൽക്കാതെ നേരിട്ട് കാസ്വൽട്ടി ഡെസ്കിൽ പോകുക.",
+      msg2: "• കുട്ടികൾ, ഗർഭിണികൾ, വളരെ വയസ്സായ രോഗികൾക്ക് മുൻഗണന ലഭിക്കാം.",
+      msg3: "• ഓർത്തോപ്പെഡിക് ഡോക്ടർ ഇന്ന് ഏകദേശം 30 മിനിറ്റ് വൈകിയാണ് തുടങ്ങുക.",
+      msg4: "• പബ്ലിക് കിയോസ്‌കിൽ ഭാഷയും സൂം ലെവലും മാറ്റാം.",
+      updatesNote: "പിന്നീട് സ്റ്റാഫ് ഇവിടെ നിന്നു സന്ദേശങ്ങൾ ചേർക്കാനും മാറ്റാനും ഷെഡ്യൂൾ ചെയ്യാനും കഴിയും.",
+      alertFill: "ദയവായി പേര്, പ്രായം, തീയതി എന്നിവ പൂരിപ്പിക്കുക.",
+      alertToken: "നിങ്ങളുടെ ടോക്കൺ നമ്പർ"
+    }
+  };
+
+  let currentLang = "en";
+
+  function applyTranslations() {
+    const elems = document.querySelectorAll("[data-i18n]");
+    elems.forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      if (translations[currentLang] && translations[currentLang][key]) {
+        el.textContent = translations[currentLang][key];
+      }
+    });
+  }
+
+  const langSelect = document.getElementById("langSelect");
+  langSelect.addEventListener("change", () => {
+    currentLang = langSelect.value;
+    applyTranslations();
+    loadBookings();
+  });
+
+  applyTranslations();
+  prefillDraft();
+  loadBookings();
+</script>
+</body>
+</html>

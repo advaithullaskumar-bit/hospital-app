@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nucleus — Staff Portal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif;}
+body{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;background:#0a0f1e;}
+/* Left dark panel */
+.left{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:3rem;position:relative;overflow:hidden;background:linear-gradient(135deg,#0a0f1e 0%,#1a202c 100%);}
+.grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(49,130,206,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(49,130,206,0.06) 1px,transparent 1px);background-size:40px 40px;}
+.scan-line{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(49,130,206,0.4),transparent);animation:scan 4s linear infinite;}
+@keyframes scan{0%{top:-2px}100%{top:100%}}
+.monitor{width:200px;height:200px;border:1.5px solid rgba(49,130,206,0.3);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;position:relative;z-index:1;background:rgba(49,130,206,0.05);backdrop-filter:blur(4px);}
+.monitor::before{content:'';position:absolute;inset:-1px;border-radius:20px;background:linear-gradient(135deg,rgba(49,130,206,0.2),transparent,rgba(49,130,206,0.2));pointer-events:none;}
+.cross{width:60px;height:60px;position:relative;}
+.cross::before,.cross::after{content:'';position:absolute;background:#3182ce;border-radius:3px;}
+.cross::before{width:8px;height:60px;left:26px;top:0;}
+.cross::after{width:60px;height:8px;left:0;top:26px;}
+.monitor-label{color:rgba(49,130,206,0.8);font-size:0.75rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;z-index:1;}
+.pulse-rings{position:absolute;width:200px;height:200px;}
+.ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(49,130,206,0.15);animation:expand 3s ease-out infinite;}
+.ring:nth-child(2){animation-delay:1s;}.ring:nth-child(3){animation-delay:2s;}
+@keyframes expand{0%{transform:scale(0.8);opacity:0.6}100%{transform:scale(2);opacity:0}}
+.left-text{text-align:center;z-index:1;margin-top:2.5rem;}
+.left-title{font-size:1.6rem;font-weight:800;color:#fff;letter-spacing:-0.5px;}
+.left-sub{font-size:0.85rem;color:rgba(255,255,255,0.4);margin-top:0.5rem;}
+.status-row{display:flex;gap:1.5rem;margin-top:2rem;z-index:1;}
+.status-item{display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;color:rgba(255,255,255,0.5);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#68d391;box-shadow:0 0 8px #68d391;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+/* Right form */
+.right{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:3rem;background:#111827;}
+.form-card{width:100%;max-width:380px;}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(49,130,206,0.15);border:1px solid rgba(49,130,206,0.3);color:#63b3ed;padding:4px 12px;border-radius:999px;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1.5rem;}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:#68d391;box-shadow:0 0 6px #68d391;animation:blink 2s infinite;}
+.form-title{font-size:2rem;font-weight:800;color:#f7fafc;margin-bottom:0.4rem;}
+.form-sub{color:#718096;font-size:0.9rem;margin-bottom:2.5rem;}
+.field{margin-bottom:1.3rem;}
+.field label{display:block;font-size:0.72rem;font-weight:700;color:#4a5568;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;}
+.field input{width:100%;padding:0.85rem 1rem;border-radius:10px;border:1px solid #2d3748;background:#1a202c;font-size:0.95rem;color:#f7fafc;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.field input:focus{border-color:#3182ce;box-shadow:0 0 0 3px rgba(49,130,206,0.15);}
+.field input::placeholder{color:#4a5568;}
+.submit-btn{width:100%;padding:1rem;border-radius:10px;border:none;background:linear-gradient(135deg,#2c5282,#3182ce);color:#fff;font-size:0.95rem;font-weight:700;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;letter-spacing:0.04em;margin-top:0.5rem;}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(49,130,206,0.3);}
+.error-box{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#fc8181;padding:0.8rem 1rem;border-radius:8px;font-size:0.85rem;margin-bottom:1.2rem;}
+.footer-note{text-align:center;margin-top:1.5rem;font-size:0.75rem;color:#4a5568;}
+@media(max-width:768px){body{grid-template-columns:1fr;background:#111827;}.left{display:none;}}
+</style>
+</head>
+<body>
+<div class="left">
+  <div class="grid-bg"></div>
+  <div class="scan-line"></div>
+  <div style="position:relative;">
+    <div class="pulse-rings"><div class="ring"></div><div class="ring"></div><div class="ring"></div></div>
+    <div class="monitor">
+      <div class="cross"></div>
+      <div class="monitor-label">Medical OS</div>
+    </div>
+  </div>
+  <div class="left-text">
+    <div class="left-title">Nucleus Staff Portal</div>
+    <div class="left-sub">Authorized personnel only. All access is logged.</div>
+  </div>
+  <div class="status-row">
+    <div class="status-item"><span class="status-dot"></span> System Online</div>
+    <div class="status-item"><span class="status-dot"></span> DB Connected</div>
+    <div class="status-item"><span class="status-dot"></span> AI Ready</div>
+  </div>
+</div>
+
+<div class="right">
+  <div class="form-card">
+    <div class="badge"><span class="badge-dot"></span> Secure Gateway v4.2</div>
+    <div class="form-title">Staff Login</div>
+    <div class="form-sub">Authorized personnel only</div>
+    {% if error %}<div class="error-box">{{ error }}</div>{% endif %}
+    <form method="post" action="{% url 'staff_login' %}">
+      {% csrf_token %}
+      <div class="field">
+        <label>Operative ID</label>
+        <input type="text" name="username" placeholder="Username" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Passcode</label>
+        <input type="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="submit-btn">AUTHENTICATE →</button>
+    </form>
+    <div class="footer-note">Nucleus Health OS · CityCare Hospital · 2026</div>
+  </div>
+</div>
+</body>
+</html>

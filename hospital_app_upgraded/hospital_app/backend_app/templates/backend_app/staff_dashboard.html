@@ -1,0 +1,211 @@
+{% extends 'backend_app/admin_layout.html' %}
+{% block page_title %}Doctor's Dashboard{% endblock %}
+{% block content %}
+
+<!-- Quick Actions -->
+<div class="card" style="margin-bottom:1.5rem;display:flex;gap:1rem;flex-wrap:wrap;align-items:center;">
+  <span style="font-weight:800;color:var(--text-dark);margin-right:0.5rem;">Quick actions:</span>
+  <a href="{% url 'patient_list' %}" class="neu-btn" style="padding:0.7rem 1.2rem;color:#3182ce;text-decoration:none;font-weight:700;">📂 Patient Records</a>
+  <a href="{% url 'upload_medical_report' %}" class="neu-btn" style="padding:0.7rem 1.2rem;color:#38a169;text-decoration:none;font-weight:700;">📄 Upload Report</a>
+  <a href="{% url 'add_health_metric' %}" class="neu-btn" style="padding:0.7rem 1.2rem;color:#e53e3e;text-decoration:none;font-weight:700;">📈 Add Vital Metrics</a>
+  <a href="/tv" target="_blank" class="neu-btn" style="padding:0.7rem 1.2rem;color:#805ad5;text-decoration:none;font-weight:700;">📺 TV Display</a>
+  <span id="autoRefreshBadge" style="margin-left:auto;font-size:0.75rem;color:#38a169;font-weight:700;display:flex;align-items:center;gap:4px;">
+    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#38a169;animation:pulse 2s infinite;"></span>
+    Live · refreshes in <span id="countdown">30</span>s
+  </span>
+</div>
+
+<style>
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1.2rem;margin-bottom:1.5rem;">
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;">
+    <div><div style="font-size:0.7rem;font-weight:700;color:var(--text-main);opacity:0.7;letter-spacing:1px;">TOTAL OPD</div>
+    <div style="font-size:2rem;font-weight:800;color:var(--brand-color);">{{ stats.total }}</div></div>
+    <div style="font-size:1.6rem;opacity:0.2;">🏥</div>
+  </div>
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;">
+    <div><div style="font-size:0.7rem;font-weight:700;opacity:0.7;letter-spacing:1px;">WAITING</div>
+    <div style="font-size:2rem;font-weight:800;color:#d69e2e;">{{ stats.waiting }}</div></div>
+    <div style="font-size:1.6rem;opacity:0.2;">⏳</div>
+  </div>
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;">
+    <div><div style="font-size:0.7rem;font-weight:700;opacity:0.7;letter-spacing:1px;">IN PROGRESS</div>
+    <div style="font-size:2rem;font-weight:800;color:#3182ce;">{{ stats.in_progress }}</div></div>
+    <div style="font-size:1.6rem;opacity:0.2;">🩺</div>
+  </div>
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;border-left:4px solid #e53e3e;">
+    <div><div style="font-size:0.7rem;font-weight:700;color:#e53e3e;opacity:0.8;letter-spacing:1px;">EMERGENCY</div>
+    <div style="font-size:2rem;font-weight:800;color:#e53e3e;">{{ stats.critical }}</div></div>
+    <div style="font-size:1.6rem;opacity:0.2;">🚨</div>
+  </div>
+  <div class="card" style="display:flex;align-items:center;justify-content:space-between;">
+    <div><div style="font-size:0.7rem;font-weight:700;opacity:0.7;letter-spacing:1px;">COMPLETED</div>
+    <div style="font-size:2rem;font-weight:800;color:#38a169;">{{ stats.completed }}</div></div>
+    <div style="font-size:1.6rem;opacity:0.2;">✅</div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+  <!-- Queue -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+      <h3 style="font-weight:800;color:var(--text-dark);margin:0;">Active Queue</h3>
+      <form method="get" style="display:flex;gap:0.5rem;">
+        <select name="status" style="padding:0.45rem;border-radius:8px;border:1px solid #e2e8f0;background:white;font-size:0.85rem;">
+          <option value="">All Status</option>
+          <option value="Waiting" {% if status_filter == 'Waiting' %}selected{% endif %}>Waiting</option>
+          <option value="In Room" {% if status_filter == 'In Room' %}selected{% endif %}>In Room</option>
+          <option value="Completed" {% if status_filter == 'Completed' %}selected{% endif %}>Completed</option>
+        </select>
+        <select name="priority" style="padding:0.45rem;border-radius:8px;border:1px solid #e2e8f0;background:white;font-size:0.85rem;">
+          <option value="">All Priority</option>
+          <option value="Normal" {% if priority_filter == 'Normal' %}selected{% endif %}>Normal</option>
+          <option value="High" {% if priority_filter == 'High' %}selected{% endif %}>High</option>
+        </select>
+        <button type="submit" style="padding:0.45rem 0.9rem;background:var(--brand-color);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.85rem;">Filter</button>
+        {% if status_filter or priority_filter %}
+        <a href="{% url 'staff_dashboard' %}" style="padding:0.45rem 0.9rem;background:#e2e8f0;color:var(--text-dark);text-decoration:none;border-radius:8px;display:flex;align-items:center;font-size:0.85rem;">Clear</a>
+        {% endif %}
+      </form>
+    </div>
+    <table class="table">
+      <thead><tr><th>Token</th><th>Slot</th><th>Patient</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for appt in appointments %}
+        <tr>
+          <td style="font-weight:800;color:var(--brand-color);">{{ appt.token_number }}</td>
+          <td style="font-size:0.82rem;font-weight:700;color:#4a5568;">{{ appt.slot }}</td>
+          <td>
+            <a href="{% if appt.patient_profile %}{% url 'patient_profile' appt.patient_profile.id %}{% else %}#{% endif %}" style="text-decoration:none;color:inherit;display:block;">
+              <div style="font-weight:800;color:var(--text-dark);">{{ appt.patient_name }} ↗</div>
+              <div style="font-size:0.72rem;">Age {{ appt.patient_age }} · {{ appt.department }}</div>
+            </a>
+          </td>
+          <td>
+            {% if appt.priority == 'High' %}<span class="badge" style="background:#fed7d7;color:#c53030;margin-right:0.4rem;">URGENT</span>{% endif %}
+            <span class="badge {% if appt.status == 'Waiting' %}badge-warning{% elif appt.status == 'In Room' %}badge-success{% else %}badge-neutral{% endif %}">{{ appt.status }}</span>
+          </td>
+          <td>
+            <form method="post" action="{% url 'update_status' appt.id %}" style="display:flex;gap:0.4rem;">
+              {% csrf_token %}
+              {% if appt.status == 'Waiting' %}
+              <button name="status" value="In Room" class="neu-btn" style="padding:0.4rem 0.9rem;font-size:0.72rem;color:#3182ce;font-weight:800;">CALL IN</button>
+              {% elif appt.status == 'In Room' %}
+              <button name="status" value="Completed" class="neu-btn" style="padding:0.4rem 0.9rem;font-size:0.72rem;color:#38a169;font-weight:800;">DONE</button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;padding:2.5rem;color:#a0aec0;">No appointments today.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Resources Heatmap -->
+  <div class="card">
+    <h3 style="margin-bottom:1.25rem;font-weight:800;color:var(--text-dark);">Bed & Resource Heatmap</h3>
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      {% for res in resources %}
+      <div class="neu-panel" style="padding:0.9rem 1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+          <div style="font-weight:700;color:var(--text-dark);font-size:0.9rem;">{{ res.name }}</div>
+          <div style="display:flex;gap:0.4rem;">
+            <form method="post" action="{% url 'update_resource' res.id %}">{% csrf_token %}<button name="action" value="decrease" class="neu-btn" style="padding:0.3rem 0.7rem;font-weight:800;font-size:0.8rem;">−</button></form>
+            <span style="font-weight:800;color:var(--brand-color);font-size:1.1rem;padding:0.3rem 0.5rem;">{{ res.total_count }}</span>
+            <form method="post" action="{% url 'update_resource' res.id %}">{% csrf_token %}<button name="action" value="increase" class="neu-btn" style="padding:0.3rem 0.7rem;font-weight:800;font-size:0.8rem;">+</button></form>
+          </div>
+        </div>
+        <!-- Bed grid heatmap -->
+        <div id="beds-{{ res.id }}" style="display:flex;flex-wrap:wrap;gap:4px;">
+          {% for i in res.total_count|ljust:'1' %}{% endfor %}
+        </div>
+        <script>
+          (function(){
+            const container = document.getElementById('beds-{{ res.id }}');
+            const total = {{ res.total_count }};
+            const used = {{ res.used_count }};
+            container.innerHTML = '';
+            for(let i=0;i<Math.min(total,30);i++){
+              const b = document.createElement('div');
+              b.title = i < used ? 'Occupied' : 'Available';
+              b.style.cssText = 'width:14px;height:14px;border-radius:3px;background:' + (i < used ? '#fed7d7' : '#c6f6d5') + ';border:1px solid ' + (i < used ? '#fc8181' : '#9ae6b4') + ';';
+              container.appendChild(b);
+            }
+            if(total > 30){ const m=document.createElement('span'); m.style.cssText='font-size:0.7rem;color:#a0aec0;align-self:center;'; m.textContent='+' + (total-30) + ' more'; container.appendChild(m); }
+            if(total === 0){ const m=document.createElement('span'); m.style.cssText='font-size:0.75rem;color:#a0aec0;'; m.textContent='No resources added'; container.appendChild(m); }
+          })();
+        </script>
+        <div style="margin-top:0.4rem;display:flex;gap:1rem;font-size:0.7rem;color:#718096;">
+          <span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:8px;height:8px;background:#c6f6d5;border-radius:2px;border:1px solid #9ae6b4;"></span>Available</span>
+          <span style="display:flex;align-items:center;gap:3px;"><span style="display:inline-block;width:8px;height:8px;background:#fed7d7;border-radius:2px;border:1px solid #fc8181;"></span>Occupied</span>
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:#a0aec0;text-align:center;padding:1.5rem 0;">No resources configured.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto-refresh countdown
+  let seconds = 30;
+  const countEl = document.getElementById('countdown');
+  setInterval(() => {
+    seconds--;
+    if (countEl) countEl.textContent = seconds;
+    if (seconds <= 0) { window.location.reload(); }
+  }, 1000);
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Weekly analytics chart — fetched once on load
+(async function() {
+  const res = await fetch('/api/weekly-analytics');
+  const data = await res.json();
+
+  // Inject analytics section after the existing content
+  const section = document.createElement('div');
+  section.innerHTML = `
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;">
+        <h3 style="font-weight:800;color:var(--text-dark);margin:0;">7-Day OPD Analytics</h3>
+        <div style="display:flex;gap:1.5rem;font-size:0.82rem;color:#718096;">
+          ${data.top_depts.map(d => `<span><strong style="color:var(--brand-color);">${d.total}</strong> ${d.department}`).join(' · ')}
+        </div>
+      </div>
+      <div style="height:200px;position:relative;"><canvas id="weeklyChart"></canvas></div>
+    </div>`;
+  document.querySelector('.scroll-area').appendChild(section);
+
+  new Chart(document.getElementById('weeklyChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: data.days,
+      datasets: [{
+        data: data.counts,
+        backgroundColor: data.counts.map((v,i) => i === data.counts.length-1 ? 'rgba(49,130,206,0.85)' : 'rgba(49,130,206,0.35)'),
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { stepSize: 1, font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

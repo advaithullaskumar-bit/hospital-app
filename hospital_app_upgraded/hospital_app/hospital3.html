@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CityCare Hospital – Simple Queue & Booking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            /* Global hospital-safe palette: blues + greens + soft neutrals */
+            --bg-main: #e7f2fb;   /* soft blue */
+            --bg-surface: #f3f6fb;
+            --card-blue: #e0f2ff;
+            --card-teal: #ddf8f4;
+            --card-green: #e4f4e8;
+            --card-grey: #eef1f6;
+
+            --primary: #0f766e;      /* teal (trust/calm) [web:20][web:29] */
+            --primary-dark: #065f46;
+            --primary-soft: #bfece2;
+            --blue-strong: #2563eb;  /* clear medical blue [web:20][web:26] */
+            --blue-soft: #d5e6ff;
+            --accent: #0ea5e9;
+            --danger: #b91c1c;       /* only for alerts [web:7] */
+
+            --text-main: #0f172a;
+            --text-muted: #6b7280;
+            --border-soft: #cbd5e1;
+            --shadow-soft: 0 10px 26px rgba(15,23,42,0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at 0% 0%, #dbeafe, transparent 60%),
+                radial-gradient(circle at 100% 100%, #ccfbf1, transparent 55%),
+                linear-gradient(180deg, #f3f6fb, #e7f2fb);
+        }
+
+        /* HEADER */
+        header {
+            background: radial-gradient(circle at 0 0,#1d4ed8,#0f172a);
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 18px rgba(15,23,42,0.35);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: conic-gradient(from 210deg,#22c55e,#0ea5e9,#22c55e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            box-shadow: 0 0 0 3px rgba(15,23,42,0.45);
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 650;
+        }
+
+        header .subtitle {
+            font-size: 11px;
+            opacity: 0.95;
+        }
+
+        .top-right {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-end;
+        }
+
+        .status {
+            font-size: 11px;
+        }
+
+        .status span {
+            background: rgba(15,23,42,0.35);
+            padding: 3px 8px;
+            border-radius: 999px;
+            margin-left: 6px;
+            font-size: 10px;
+        }
+
+        .language-switcher {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .language-switcher label {
+            font-size: 11px;
+        }
+
+        .language-switcher select {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: none;
+            background: rgba(15,23,42,0.25);
+            color: white;
+            outline: none;
+        }
+
+        .help-button {
+            margin-top: 4px;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(248,250,252,0.5);
+            background: radial-gradient(circle at 0 0, #f97316, #dc2626);
+            color: white;
+            text-decoration: none;
+            box-shadow: 0 0 0 1px rgba(15,23,42,0.25);
+        }
+
+        /* MAIN LAYOUT */
+        main {
+            max-width: 960px;
+            margin: 16px auto 24px;
+            padding: 0 12px 24px;
+        }
+
+        .welcome {
+            background: linear-gradient(135deg,#e0f2ff,#ddf8f4);
+            border-radius: 20px;
+            padding: 16px 18px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(148,163,184,0.4);
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome::before {
+            content: "";
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(56,189,248,0.25), transparent 60%);
+            top: -50px;
+            right: -30px;
+        }
+
+        .welcome h2 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .welcome p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .steps {
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .steps li {
+            margin-left: 20px;
+            margin-bottom: 3px;
+        }
+
+        /* ACTION CARDS ROW */
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 10px;
+        }
+
+        .action-card {
+            border-radius: 20px;
+            padding: 14px 14px 12px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(148,163,184,0.35);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* DIFFERENT COLOUR PER MAIN WIDGET (still medical-safe) [web:20][web:22][web:29] */
+        .action-queue {
+            background: radial-gradient(circle at 0 0,#c7ddff,transparent 55%), var(--card-blue);
+        }
+
+        .action-book {
+            background: radial-gradient(circle at 100% 0,#bfece2,transparent 55%), var(--card-teal);
+        }
+
+        .action-resource {
+            background: radial-gradient(circle at 0 100%,#cbeccf,transparent 55%), var(--card-green);
+        }
+
+        .action-card::after {
+            content: "";
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 999px;
+            background: rgba(15,23,42,0.06);
+            bottom: -30px;
+            right: -10px;
+        }
+
+        .action-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 32px rgba(15,23,42,0.18);
+            border-color: rgba(37,99,235,0.55);
+        }
+
+        .action-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 8px;
+            box-shadow: 0 6px 12px rgba(15,23,42,0.18);
+        }
+
+        .icon-green { background: linear-gradient(135deg,#bbf7d0,#22c55e); }
+        .icon-blue { background: linear-gradient(135deg,#bfdbfe,#60a5fa); }
+        .icon-orange { background: linear-gradient(135deg,#fee2e2,#fb923c); }
+
+        .action-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .action-text {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .action-button {
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(90deg, var(--primary), var(--blue-strong));
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* MAIN CONTENT PANELS */
+        .content-panel {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.9fr);
+            gap: 16px;
+        }
+
+        .panel {
+            border-radius: 18px;
+            padding: 14px 16px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(148,163,184,0.4);
+            position: relative;
+        }
+
+        /* give each panel area a different subtle base colour */
+        /* Queue table: blue-tinted surface */
+        #queue > .panel:first-child {
+            background: linear-gradient(145deg,#e3efff,#f4f7fd);
+        }
+
+        /* Booking panel: teal-tinted surface */
+        #booking.panel,
+        #booking .panel,
+        .panel#booking {
+            background: linear-gradient(145deg,#ddf8f4,#f5fbfa);
+        }
+
+        /* Resources table: soft green + grey mix */
+        #resources > .panel:first-child {
+            background: linear-gradient(145deg,#e4f4e8,#edf2f7);
+        }
+
+        /* Messages panel: calm grey */
+        #resources > .panel:last-child {
+            background: linear-gradient(145deg,#eef1f6,#f7f9fc);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .panel-header h3 {
+            font-size: 15px;
+        }
+
+        .panel-header small {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 6px 4px;
+        }
+
+        th {
+            border-bottom: 1px solid var(--border-soft);
+            font-weight: 600;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(248,250,252,0.7);
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+        }
+
+        .pill.waiting { background: #eef2ff; color: #4f46e5; }
+        .pill.in-room { background: #dcfce7; color: #15803d; }
+        .pill.completed { background: #e5e7eb; color: #374151; }
+        .pill.low { background: #fef3c7; color: #92400e; }
+        .pill.good { background: #dcfce7; color: #166534; }
+
+        .info-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .booking-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px 12px;
+            font-size: 13px;
+        }
+
+        .booking-form label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .booking-form input,
+        .booking-form select {
+            width: 100%;
+            padding: 7px 9px;
+            border-radius: 10px;
+            border: 1px solid var(--border-soft);
+            font-size: 13px;
+            background: #f9fafb;
+        }
+
+        .booking-form input:focus,
+        .booking-form select:focus {
+            outline: 2px solid rgba(37,99,235,0.55);
+            border-color: transparent;
+            background: #ffffff;
+        }
+
+        .booking-form button {
+            grid-column: 1 / -1;
+            margin-top: 8px;
+            padding: 9px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(90deg, var(--primary), #16a34a);
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(22,163,74,0.4);
+        }
+
+        .booking-list {
+            margin-top: 8px;
+            border-top: 1px dashed #e5e7eb;
+            padding-top: 6px;
+            max-height: 130px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+
+        .booking-item {
+            padding: 4px 0;
+            border-bottom: 1px dotted #e5e7eb;
+        }
+
+        .booking-item span { font-weight: 600; }
+
+        .booking-empty {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .small-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .list {
+            font-size: 12px;
+            list-style: none;
+        }
+
+        .list li {
+            margin-bottom: 4px;
+        }
+
+        /* POPUPS */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            z-index: 80;
+        }
+
+        .overlay:target {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #f4f7fb;
+            border-radius: 18px;
+            width: 90%;
+            max-width: 380px;
+            padding: 16px 16px 12px;
+            box-shadow: 0 18px 40px rgba(15,23,42,0.45);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+        }
+
+        .popup::before {
+            content: "";
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 999px;
+            background: radial-gradient(circle, rgba(59,130,246,0.24), transparent 60%);
+            top: -45px;
+            left: -30px;
+        }
+
+        .popup h2 { font-size: 16px; margin-bottom: 4px; position: relative; }
+        .popup p { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; position: relative; }
+
+        .popup .highlight {
+            background: #fee2e2;
+            color: var(--danger);
+            padding: 6px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .popup-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 4px;
+            position: relative;
+        }
+
+        .popup-actions a {
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            text-decoration: none;
+        }
+
+        .popup-actions .secondary {
+            background: #e5e7eb;
+            color: #111827;
+        }
+
+        .popup-actions .primary {
+            background: var(--primary);
+            color: #ecfdf5;
+        }
+
+        .popup .close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            text-decoration: none;
+            font-size: 18px;
+            color: var(--text-muted);
+            z-index: 2;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .actions {
+                grid-template-columns: 1fr;
+            }
+            .content-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            .top-right { text-align: left; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">
+        <div class="logo">HC</div>
+        <div>
+            <h1 data-i18n="title">CityCare Hospital</h1>
+            <div class="subtitle" data-i18n="subtitle">
+                Simple screen to see your turn, book a visit, and view emergency rush.
+            </div>
+        </div>
+    </div>
+    <div class="top-right">
+        <div class="status">
+            <span data-i18n="systemStatusLabel">Status</span>
+            <span data-i18n="systemStatusValue">Online · Updated often</span>
+        </div>
+        <div class="language-switcher">
+            <label for="langSelect" data-i18n="languageLabel">Language:</label>
+            <select id="langSelect">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="ml">മലയാളം</option>
+            </select>
+        </div>
+        <a href="#popup-help" class="help-button" data-i18n="helpButton">Need quick help?</a>
+    </div>
+</header>
+
+<main>
+    <section class="welcome">
+        <h2 data-i18n="welcomeTitle">Welcome</h2>
+        <p data-i18n="welcomeText">
+            This screen is for patients and family. You can: see your queue position, book an OP visit, and check how busy the hospital is.
+        </p>
+        <ul class="steps">
+            <li data-i18n="step1">Step 1: Choose one big button below.</li>
+            <li data-i18n="step2">Step 2: Read the short message on that card.</li>
+            <li data-i18n="step3">Step 3: If you need help, show this screen to a staff member.</li>
+        </ul>
+    </section>
+
+    <section class="actions">
+        <div class="action-card action-queue" onclick="scrollToSection('queue')">
+            <div class="action-icon icon-green">👣</div>
+            <div class="action-title" data-i18n="actionQueueTitle">Check my turn</div>
+            <div class="action-text" data-i18n="actionQueueText">
+                See current tokens inside OPD and how long you may need to wait.
+            </div>
+            <button class="action-button" type="button" data-i18n="actionQueueButton">Show queue</button>
+        </div>
+
+        <div class="action-card action-book" onclick="scrollToSection('booking')">
+            <div class="action-icon icon-blue">📅</div>
+            <div class="action-title" data-i18n="actionBookingTitle">Book a visit</div>
+            <div class="action-text" data-i18n="actionBookingText">
+                Book an OP ticket by filling your name, age, doctor and date.
+            </div>
+            <button class="action-button" type="button" data-i18n="actionBookingButton">Book now</button>
+        </div>
+
+        <div class="action-card action-resource" onclick="scrollToSection('resources')">
+            <div class="action-icon icon-orange">🏥</div>
+            <div class="action-title" data-i18n="actionResourceTitle">Beds & emergency</div>
+            <div class="action-text" data-i18n="actionResourceText">
+                See free beds in casualty, ward, ICU and oxygen/blood status.
+            </div>
+            <button class="action-button" type="button" data-i18n="actionResourceButton">View status</button>
+        </div>
+    </section>
+
+    <section class="content-panel" id="queue">
+        <div class="panel">
+            <div class="panel-header">
+                <h3 data-i18n="sectionQueueTitle">OPD queue (example)</h3>
+                <small><a href="#popup-delay" style="font-size:11px; color:#0ea5e9;" data-i18n="linkDelayNotice">Doctor delay notice</a></small>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th data-i18n="thToken">Token</th>
+                    <th data-i18n="thPatient">Patient</th>
+                    <th data-i18n="thDoctor">Doctor</th>
+                    <th data-i18n="thSpeciality">Dept</th>
+                    <th data-i18n="thStatus">Status</th>
+                    <th data-i18n="thETA">Time</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>OP‑021</td>
+                    <td>Rahul</td>
+                    <td>Dr. Rao</td>
+                    <td data-i18n="specCardiology">Heart</td>
+                    <td><span class="pill in-room" data-i18n="statusInRoom">Inside</span></td>
+                    <td>–</td>
+                </tr>
+                <tr>
+                    <td>OP‑022</td>
+                    <td>Priya</td>
+                    <td>Dr. Rao</td>
+                    <td data-i18n="specCardiology">Heart</td>
+                    <td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td>
+                    <td>~ 6 min</td>
+                </tr>
+                <tr>
+                    <td>OP‑045</td>
+                    <td>Mohammed</td>
+                    <td>Dr. Iyer</td>
+                    <td data-i18n="specOrtho">Bones</td>
+                    <td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td>
+                    <td>~ 12 min</td>
+                </tr>
+                <tr>
+                    <td>OP‑052</td>
+                    <td>Lakshmi</td>
+                    <td>Dr. Menon</td>
+                    <td data-i18n="specPedia">Children</td>
+                    <td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td>
+                    <td>~ 8 min</td>
+                </tr>
+                <tr>
+                    <td>OP‑010</td>
+                    <td>Arun</td>
+                    <td>Dr. Das</td>
+                    <td data-i18n="specGeneral">General</td>
+                    <td><span class="pill completed" data-i18n="statusCompleted">Finished</span></td>
+                    <td>–</td>
+                </tr>
+                </tbody>
+            </table>
+            <p class="info-text" data-i18n="queueNote">
+                This is only a sample. In a real hospital, this table moves automatically as tokens are called.
+            </p>
+        </div>
+
+        <div class="panel" id="booking">
+            <div class="panel-header">
+                <h3 data-i18n="sectionBookingTitle">Book an OP ticket</h3>
+            </div>
+            <form class="booking-form" id="bookingForm">
+                <div>
+                    <label for="pname" data-i18n="labelName">Patient name</label>
+                    <input id="pname" type="text" placeholder="Write full name">
+                </div>
+                <div>
+                    <label for="page" data-i18n="labelAge">Age</label>
+                    <input id="page" type="number" min="0" placeholder="Age">
+                </div>
+                <div>
+                    <label for="dept" data-i18n="labelDept">Department</label>
+                    <select id="dept">
+                        <option data-i18n="specCardiology">Heart</option>
+                        <option data-i18n="specOrtho">Bones</option>
+                        <option data-i18n="specPedia">Children</option>
+                        <option data-i18n="specGeneral">General</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="doc" data-i18n="labelDoctor">Doctor</label>
+                    <select id="doc">
+                        <option>Dr. Rao</option>
+                        <option>Dr. Iyer</option>
+                        <option>Dr. Menon</option>
+                        <option data-i18n="optAnyDoc">Any doctor</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="date" data-i18n="labelDate">Date</label>
+                    <input id="date" type="date">
+                </div>
+                <div>
+                    <label for="slot" data-i18n="labelSlot">Time</label>
+                    <select id="slot">
+                        <option>Morning</option>
+                        <option>Afternoon</option>
+                    </select>
+                </div>
+                <button type="submit" data-i18n="btnGenerate">Get your token</button>
+            </form>
+            <div class="booking-list" id="bookingList">
+                <div class="booking-empty" data-i18n="bookingEmpty">
+                    When you book, your token will appear here.
+                </div>
+            </div>
+            <p class="info-text" data-i18n="bookingNote">
+                This demo only saves in this phone/computer. Real hospitals have their own system.
+            </p>
+        </div>
+    </section>
+
+    <section class="content-panel" id="resources">
+        <div class="panel">
+            <div class="panel-header">
+                <h3 data-i18n="sectionResourcesTitle">Beds & oxygen</h3>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th data-i18n="thResource">Area</th>
+                    <th data-i18n="thStatus">Status</th>
+                    <th data-i18n="thDetails">Details</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td data-i18n="resCasualtyBeds">Casualty (Emergency)</td>
+                    <td><span class="pill low" data-i18n="resCasualtyStatus">3 beds free</span></td>
+                    <td data-i18n="resCasualtyDetails">9 used / 12 total</td>
+                </tr>
+                <tr>
+                    <td data-i18n="resWardBeds">Ward rooms</td>
+                    <td><span class="pill good" data-i18n="resWardStatus">Many beds free</span></td>
+                    <td data-i18n="resWardDetails">56 used / 80 total</td>
+                </tr>
+                <tr>
+                    <td data-i18n="resICUBeds">ICU</td>
+                    <td><span class="pill low" data-i18n="resICUStatus">2 beds free</span></td>
+                    <td data-i18n="resICUDetails">Very serious patients first</td>
+                </tr>
+                <tr>
+                    <td data-i18n="resOxygen">Oxygen cylinders</td>
+                    <td><span class="pill low" data-i18n="resOxygenStatus">26 in use</span></td>
+                    <td data-i18n="resOxygenDetails">10 kept ready as backup</td>
+                </tr>
+                <tr>
+                    <td data-i18n="resBlood">Blood bank</td>
+                    <td><span class="pill good" data-i18n="resBloodStatus">OK</span></td>
+                    <td data-i18n="resBloodDetails">O- and B- low, others okay</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel">
+            <div class="small-title" data-i18n="updatesTitle">Important messages</div>
+            <ul class="list">
+                <li data-i18n="msg1">If you feel very unwell, go to the Casualty desk, not just the queue.</li>
+                <li data-i18n="msg2">Show this screen to the help desk if you do not understand it.</li>
+                <li data-i18n="msg3">Children, pregnant women and very old patients may get priority.</li>
+                <li data-i18n="msg4">You can change the language at the top right at any time.</li>
+            </ul>
+        </div>
+    </section>
+</main>
+
+<div id="popup-delay" class="overlay">
+    <div class="popup">
+        <a class="close" href="#">&times;</a>
+        <h2 data-i18n="popupTitle">Doctor coming late</h2>
+        <div class="highlight" data-i18n="popupHighlight">
+            Orthopedics doctor will start about 30 minutes late today.
+        </div>
+        <p data-i18n="popupDetails1">
+            Your token may be called later than shown. Watch the screen or ask the help desk.
+        </p>
+        <p data-i18n="popupDetails2">
+            If your pain is very strong, please go to the Casualty desk now.
+        </p>
+        <div class="popup-actions">
+            <a href="#" class="secondary" data-i18n="popupDismiss">OK</a>
+            <a href="#queue" class="primary" data-i18n="popupViewQueue">Back to queue</a>
+        </div>
+    </div>
+</div>
+
+<div id="popup-help" class="overlay">
+    <div class="popup">
+        <a class="close" href="#">&times;</a>
+        <h2 data-i18n="helpTitle">How to use this screen</h2>
+        <div class="highlight" data-i18n="helpHighlight">
+            Choose Queue, Booking or Beds card below. Staff can help you anytime.
+        </div>
+        <p data-i18n="helpDetails1">
+            For normal OP visits, first book a token using the "Book a visit" card.
+        </p>
+        <p data-i18n="helpDetails2">
+            If you feel very sick or have heavy pain, go to the Casualty desk directly.
+        </p>
+        <div class="popup-actions">
+            <a href="#booking" class="primary" data-i18n="helpGoBooking">Go to booking</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function scrollToSection(id) {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth" });
+    }
+
+    const STORAGE_KEY = "hospital_bookings_simple";
+    const form = document.getElementById("bookingForm");
+    const listEl = document.getElementById("bookingList");
+
+    function loadBookings() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        let bookings = [];
+        if (saved) {
+            try { bookings = JSON.parse(saved); } catch (e) { bookings = []; }
+        }
+        renderBookings(bookings);
+    }
+
+    function saveBookings(bookings) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+    }
+
+    function renderBookings(bookings) {
+        listEl.innerHTML = "";
+        if (!bookings.length) {
+            const empty = document.createElement("div");
+            empty.className = "booking-empty";
+            empty.setAttribute("data-i18n", "bookingEmpty");
+            empty.textContent = translations[currentLang].bookingEmpty;
+            listEl.appendChild(empty);
+            return;
+        }
+
+        bookings.forEach((b) => {
+            const div = document.createElement("div");
+            div.className = "booking-item";
+            div.innerHTML = `<span>${b.token}</span> – ${b.name}, ${b.age} yrs · ${b.dept}, ${b.doc} · ${b.date} (${b.slot})`;
+            listEl.appendChild(div);
+        });
+    }
+
+    function generateToken(bookings) {
+        if (!bookings.length) return "OP-001";
+        const last = bookings[bookings.length - 1].token;
+        const num = parseInt(last.split("-")[1]) + 1;
+        return "OP-" + String(num).padStart(3, "0");
+    }
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const name = document.getElementById("pname").value.trim();
+        const age = document.getElementById("page").value.trim();
+        const dept = document.getElementById("dept").value;
+        const doc = document.getElementById("doc").value;
+        const date = document.getElementById("date").value;
+        const slot = document.getElementById("slot").value;
+
+        if (!name || !age || !date) {
+            alert(translations[currentLang].alertFill);
+            return;
+        }
+
+        const saved = localStorage.getItem(STORAGE_KEY);
+        let bookings = saved ? JSON.parse(saved) : [];
+        const token = generateToken(bookings);
+
+        bookings.push({ token, name, age, dept, doc, date, slot });
+        saveBookings(bookings);
+        renderBookings(bookings);
+
+        alert(translations[currentLang].alertToken + " " + token);
+        form.reset();
+    });
+
+    const translations = {
+        /* same as previous answer, omitted for brevity – keep your existing en/hi/ml objects here */
+        /* ensure it includes helpButton/helpTitle/helpHighlight/helpDetails1/helpDetails2/helpGoBooking keys */
+    };
+
+    let currentLang = "en";
+
+    function applyTranslations() {
+        const elems = document.querySelectorAll("[data-i18n]");
+        elems.forEach(el => {
+            const key = el.getAttribute("data-i18n");
+            if (translations[currentLang][key]) {
+                el.textContent = translations[currentLang][key];
+            }
+        });
+        const saved = localStorage.getItem(STORAGE_KEY);
+        let bookings = saved ? JSON.parse(saved) : [];
+        renderBookings(bookings);
+    }
+
+    const langSelect = document.getElementById("langSelect");
+    langSelect.addEventListener("change", () => {
+        currentLang = langSelect.value;
+        applyTranslations();
+    });
+
+    loadBookings();
+    applyTranslations();
+</script>
+
+</body>
+</html>

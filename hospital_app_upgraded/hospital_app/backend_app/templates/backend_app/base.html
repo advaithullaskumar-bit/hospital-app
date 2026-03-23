@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    --neumorph-light: #ffffff;
+    --brand-color: #2c5282;
+    /* Deeper Professional Blue */
+    --nucleus-glow: rgba(49, 130, 206, 0.1);
+    }
+
+    body {
+    font-family: var(--font-main);
+    background-color: var(--bg-body);
+    background-image:
+    radial-gradient(circle at 10% 20%, var(--nucleus-glow) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, var(--nucleus-glow) 0%, transparent 40%);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    position: relative;
+    }
+
+
+    /* Dark mode overrides */
+    body.dark-mode {
+    --bg-body: #1a202c;
+    --bg-accent: #2d3748;
+    --text-main: #e2e8f0;
+    --neumorph-shadow: #111827;
+    --neumorph-light: #2d3748;
+    --brand-color: #63b3ed;
+    }
+    body.dark-mode nav { background: #1a202c; }
+    body.dark-mode .neu-card,
+    body.dark-mode .neu-btn { background: #1a202c; color: #e2e8f0; }
+    .dark-toggle { cursor:pointer; background:none; border:none; font-size:1.3rem; padding:0.4rem; border-radius:8px;
+    transition:background 0.2s; }
+    .dark-toggle:hover { background:rgba(0,0,0,0.07); }
+
+    /* Scientific Orbital Graphics */
+    body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background:
+    url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50%" cy="50%" r="300" stroke="rgba(44, 82, 130, 0.03)" stroke-width="1" fill="none" />
+        <circle cx="50%" cy="50%" r="450" stroke="rgba(44, 82, 130, 0.02)" stroke-width="1" fill="none" />
+        <ellipse cx="50%" cy="50%" rx="600" ry="200" stroke="rgba(44, 82, 130, 0.02)" stroke-width="1" fill="none"
+            transform="rotate(45 500 500)" />
+    </svg>');
+    background-size: cover;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.8;
+    }
+
+    /* Navbar */
+    nav {
+    background: var(--bg-body);
+    padding: 1.5rem 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    align-self: center;
+    }
+
+    .nav-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    }
+
+    .logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--brand-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    }
+
+    .btn-glass {
+    padding: 0.8rem 1.5rem;
+    border-radius: 12px;
+    background: var(--bg-body);
+    box-shadow: 6px 6px 10px var(--neumorph-shadow),
+    -6px -6px 10px var(--neumorph-light);
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 700;
+    transition: 0.2s;
+    }
+
+    .btn-glass:hover {
+    transform: translateY(-2px);
+    color: var(--brand-color);
+    }
+
+    /* Footer */
+    footer {
+    margin-top: auto;
+    padding: 2rem 0;
+    text-align: center;
+    opacity: 0.6;
+    }
+
+    /* Chatbot Styles */
+    .chatbot-toggler {
+    position: fixed;
+    bottom: 30px;
+    right: 35px;
+    outline: none;
+    border: none;
+    height: 50px;
+    width: 50px;
+    display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #3182ce;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 5px 15px rgba(49, 130, 206, 0.4);
+    }
+
+    .chatbot-toggler span {
+    color: #fff;
+    position: absolute;
+    }
+
+    body.show-chatbot .chatbot-toggler span:first-child {
+    opacity: 0;
+    }
+
+    .chatbot {
+    position: fixed;
+    right: 35px;
+    bottom: 90px;
+    width: 320px;
+    background: #fff;
+    border-radius: 15px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.5);
+    transform-origin: bottom right;
+    transition: all 0.1s ease;
+    z-index: 1000;
+    box-shadow: 0 0 128px 0 rgba(0, 0, 0, 0.1), 0 32px 64px -48px rgba(0, 0, 0, 0.5);
+    }
+
+    body.show-chatbot .chatbot {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+    }
+
+    .chatbot header {
+    padding: 12px 0;
+    text-align: center;
+    color: #fff;
+    background: #3182ce;
+    }
+
+    .chatbot header h2 {
+    font-size: 1.1rem;
+    margin: 0;
+    }
+
+    .chatbot .chatbox {
+    overflow-y: auto;
+    height: 300px;
+    padding: 15px;
+    }
+
+    .chatbox .chat {
+    display: flex;
+    list-style: none;
+    margin: 10px 0;
+    }
+
+    .chatbox .chat p {
+    padding: 8px 12px;
+    border-radius: 10px 10px 0 10px;
+    max-width: 80%;
+    color: #fff;
+    font-size: 0.85rem;
+    background: #3182ce;
+    }
+
+    .chatbox .incoming p {
+    border-radius: 10px 10px 10px 0;
+    color: #000;
+    background: #f2f2f2;
+    }
+
+    .chatbot .chat-input {
+    display: flex;
+    padding: 10px;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    }
+
+    .chat-input textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    height: 30px;
+    font-size: 0.85rem;
+    }
+
+    /* NEUMORPHIC DESIGN SYSTEM */
+    .neu-card {
+    background: var(--bg-body);
+    border-radius: 20px;
+    box-shadow: 10px 10px 20px var(--neumorph-shadow),
+    -10px -10px 20px var(--neumorph-light);
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: 0.3s;
+    }
+
+    .neu-btn {
+    background: var(--bg-body);
+    border-radius: 12px;
+    box-shadow: 6px 6px 12px var(--neumorph-shadow),
+    -6px -6px 12px var(--neumorph-light);
+    color: var(--text-main);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    }
+
+    .neu-btn:hover {
+    transform: translateY(-2px);
+    color: var(--brand-color);
+    }
+
+    .neu-btn:active {
+    box-shadow: inset 4px 4px 8px var(--neumorph-shadow),
+    inset -4px -4px 8px var(--neumorph-light);
+    transform: translateY(0);
+    }
+
+    .input-neu {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    border: none;
+    background: var(--bg-body);
+    box-shadow: inset 6px 6px 12px var(--neumorph-shadow),
+    inset -6px -6px 12px var(--neumorph-light);
+    font-family: inherit;
+    color: var(--text-main);
+    font-weight: 600;
+    transition: 0.3s;
+    }
+
+    .input-neu:focus {
+    outline: none;
+    box-shadow: inset 8px 8px 16px var(--neumorph-shadow),
+    inset -8px -8px 16px var(--neumorph-light);
+    }
+
+    .badge {
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    display: inline-block;
+    box-shadow: 2px 2px 5px var(--neumorph-shadow),
+    -2px -2px 5px var(--neumorph-light);
+    }
+
+    .badge-warning {
+    background: #fffaf0;
+    color: #a6731a;
+    }
+
+    .badge-success {
+    background: #f0fff4;
+    color: #276749;
+    }
+
+    .badge-neutral {
+    background: var(--bg-body);
+    color: var(--text-main);
+    }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="container nav-content">
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 8px;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                    style="color: var(--brand-color);">
+                    <circle cx="12" cy="12" r="4" fill="currentColor" opacity="0.2" />
+                    <circle cx="12" cy="12" r="2" fill="currentColor" />
+                    <path d="M12 7V17M7 12H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"
+                        opacity="0.5" />
+                </svg>
+                NUCLEUS HEALTH
+            </a>
+            <div style="display: flex; gap: 1rem;">
+                <a href="{% url 'patient_login' %}" class="btn-glass" style="color: var(--brand-color);">My
+                    Dashboard</a>
+                <a href="{% url 'staff_login' %}" class="btn-glass">Staff Portal</a>
+                <button class="dark-toggle" onclick="toggleDark()" id="darkBtn" title="Toggle dark mode">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+        <div class="container">
+            <p>© 2026 Nucleus Systems. Eye-Friendly & Advanced.</p>
+        </div>
+    </footer>
+
+    <!-- Global Health Gemini AI -->
+    <button class="chatbot-toggler" onclick="document.body.classList.toggle('show-chatbot')"
+        style="background: linear-gradient(135deg, #2c5282 0%, #3182ce 100%);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="3" fill="white" />
+            <path d="M12 2V5M12 19V22M2 12H5M19 12H22" stroke="white" stroke-width="2" stroke-linecap="round" />
+            <path d="M12 7V17M7 12H17" stroke="white" stroke-width="2" stroke-linecap="round" />
+            <circle cx="12" cy="12" r="9" stroke="white" stroke-width="1" stroke-dasharray="2 2" />
+        </svg>
+    </button>
+
+    <div class="chatbot" style="width: 380px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.2);">
+        <header
+            style="background: linear-gradient(90deg, #2c5282 0%, #3182ce 100%); padding: 20px; text-align: left; display: flex; align-items: center; gap: 10px;">
+            <div
+                style="width: 35px; height: 35px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2c5282;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="4" fill="currentColor" />
+                    <path d="M12 8V16M8 12H16" stroke="white" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </div>
+            <div>
+                <h2 style="font-size: 1.2rem; margin: 0; font-weight: 800; letter-spacing: -0.5px;">Nucleus Health</h2>
+                <div style="font-size: 0.7rem; opacity: 0.8; font-weight: 600;">ADVANCED MEDICAL AI</div>
+            </div>
+        </header>
+        <ul class="chatbox" id="globalChatbox" style="height: 350px; background: #f8fafc; padding: 20px;">
+            <li class="chat incoming">
+                <p
+                    style="background: white; color: #1e293b; border: 1px solid #e2e8f0; border-radius: 12px 12px 12px 4px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                    Hi! I'm **Nucleus Health**. I've been trained on thousands of medical profiles and medicines.
+                    How can I assist your health journey today?
+                </p>
+            </li>
+        </ul>
+        <div class="chat-input"
+            style="padding: 15px; background: white; border-top: 1px solid #f1f5f9; align-items: center;">
+            <textarea id="globalChatInput" placeholder="Ask about symptoms, medicines..."
+                style="background: #f1f5f9; border-radius: 12px; padding: 12px; height: 45px; font-weight: 500;"></textarea>
+            <span onclick="handleGlobalChat()" style="color: #6366f1; font-size: 24px; padding-left: 10px;">✦</span>
+        </div>
+    </div>
+
+    <script>
+        async function handleGlobalChat() {
+            const input = document.getElementById('globalChatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            input.value = '';
+            const box = document.getElementById('globalChatbox');
+            box.innerHTML += `<li class="chat outgoing"><p>${message}</p></li>`;
+
+            const typing = document.createElement('li');
+            typing.className = 'chat incoming';
+            typing.innerHTML = `<p>...</p>`;
+            box.appendChild(typing);
+            box.scrollTo(0, box.scrollHeight);
+
+            const fd = new FormData(); fd.append('message', message);
+            try {
+                const res = await fetch('/api/chatbot', { method: 'POST', body: fd });
+                const data = await res.json();
+                typing.innerHTML = `<p>${data.response}</p>`;
+            } catch (e) { typing.innerHTML = `<p>Error connecting...</p>`; }
+            box.scrollTo(0, box.scrollHeight);
+        }
+        document.getElementById('globalChatInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGlobalChat(); }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+
+</html>

@@ -1,0 +1,19 @@
+[
+  {
+    "role": "staff",
+    "phone": "9999990001",
+    "countryCode": "+91",
+    "password": "staff123",
+    "approved": true
+  },
+  {
+    "role": "patient",
+    "phone": "9999991001",
+    "approved": true
+  },
+  {
+    "role": "patient",
+    "phone": "9999991002",
+    "approved": false
+  }
+]

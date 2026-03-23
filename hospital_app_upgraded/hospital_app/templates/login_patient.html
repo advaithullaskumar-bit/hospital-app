@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CityCare – Patient Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --primary:#1d4ed8; --card:#ffffff;
+      --text-main:#111827; --text-muted:#6b7280;
+      --border-soft:#e5e7eb; --shadow:0 20px 50px rgba(15,23,42,0.55);
+    }
+    *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;}
+    body{
+      min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:
+        radial-gradient(circle at 0 0,#0ea5e9,transparent 55%),
+        radial-gradient(circle at 100% 100%,#22c55e,transparent 55%),
+        linear-gradient(180deg,#020617,#020617);
+      padding:16px;
+    }
+    .shell{
+      width:100%;max-width:420px;
+      background:var(--card);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:20px 18px 18px;
+      color:var(--text-main);
+    }
+    .brand{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+    .logo{
+      width:36px;height:36px;border-radius:12px;
+      background:conic-gradient(from 210deg,#22c55e,#0ea5e9,#22c55e);
+      display:flex;align-items:center;justify-content:center;
+      font-weight:700;font-size:16px;
+    }
+    .brand h1{font-size:18px;}
+    .brand p{font-size:11px;color:var(--text-muted);}
+    h2{font-size:18px;margin-bottom:4px;}
+    .subtitle{font-size:12px;color:var(--text-muted);margin-bottom:12px;}
+    form{display:grid;gap:9px;font-size:13px;}
+    .field-group{display:flex;flex-direction:column;gap:3px;}
+    label{font-size:11px;color:var(--text-muted);}
+    input{
+      width:100%;padding:8px 10px;border-radius:10px;
+      border:1px solid var(--border-soft);font-size:13px;
+      background:#f9fafb;
+    }
+    .helper{font-size:11px;color:var(--text-muted);}
+    .error{font-size:11px;color:#b91c1c;min-height:14px;}
+    .btn{
+      margin-top:8px;width:100%;padding:9px;border-radius:999px;
+      border:none;cursor:pointer;
+      background:linear-gradient(90deg,#1d4ed8,#16a34a);
+      color:#ffffff;font-size:14px;
+      box-shadow:0 12px 26px rgba(37,99,235,0.5);
+    }
+    .link-row{margin-top:10px;font-size:11px;color:var(--text-muted);text-align:center;}
+    .link-row a{color:#1d4ed8;text-decoration:none;}
+    .link-row a:hover{text-decoration:underline;}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <div class="brand">
+    <div class="logo">HC</div>
+    <div>
+      <h1>CityCare Hospital</h1>
+      <p>Patient OP ticket access</p>
+    </div>
+  </div>
+
+  <h2>Patient login</h2>
+  <p class="subtitle">
+    Enter the mobile number that you gave at registration. Only approved numbers can see OP tickets.
+  </p>
+
+  <form id="patientLoginForm" novalidate>
+    <div class="field-group">
+      <label for="patientPhone">Registered phone number</label>
+      <input id="patientPhone" name="phone" type="tel"
+             placeholder="10‑digit mobile"
+             pattern="[0-9]{10}" minlength="10" maxlength="10" required />
+      <div class="helper">
+        If your number is not approved yet, the help desk can update it.
+      </div>
+      <div id="patientPhoneError" class="error"></div>
+    </div>
+
+    <button class="btn" type="submit">Continue</button>
+
+    <div class="link-row">
+      <a href="/">Back to welcome page</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  const patientLoginForm = document.getElementById("patientLoginForm");
+  const patientPhoneInput = document.getElementById("patientPhone");
+  const patientPhoneError = document.getElementById("patientPhoneError");
+
+  function validatePatientPhone() {
+    const v = patientPhoneInput.value.trim();
+    if (!v) { patientPhoneError.textContent = "Phone number is required."; return false; }
+    if (!/^[0-9]{10}$/.test(v)) { patientPhoneError.textContent = "Enter a valid 10‑digit mobile number."; return false; }
+    patientPhoneError.textContent = ""; return true;
+  }
+
+  patientPhoneInput.addEventListener("input", validatePatientPhone);
+
+  patientLoginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!validatePatientPhone()) return;
+
+    const payload = { phone: patientPhoneInput.value.trim() };
+
+    try {
+      const res = await fetch("/login/patient", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!data.ok) {
+        alert(data.message || "Patient login failed");
+        return;
+      }
+
+      window.location.href = data.redirect || "/dashboard";
+    } catch (err) {
+      console.error(err);
+      alert("Network error – please try again.");
+    }
+  });
+</script>
+</body>
+</html>

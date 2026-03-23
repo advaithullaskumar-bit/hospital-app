@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nucleus | 3D Ops</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* HEALTH BLUE THEME - High Performance */
+            --bg-body: #f0f7ff;
+            --text-main: #4a5568;
+            --text-dark: #2d3748;
+
+            --neumorph-light: #ffffff;
+            --neumorph-shadow: #c6d6e8;
+
+            --brand-color: #3182ce;
+            /* Soft Blue */
+            --accent-red: #e53e3e;
+            --accent-green: #38a169;
+
+            --radius: 20px;
+            --font-main: 'Nunito', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 3D Neumorphic Mixins */
+        .neu-panel {
+            background: var(--bg-body);
+            border-radius: var(--radius);
+            box-shadow: 9px 9px 16px var(--neumorph-shadow),
+                -9px -9px 16px var(--neumorph-light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .neu-btn {
+            background: var(--bg-body);
+            border-radius: 12px;
+            box-shadow: 6px 6px 10px var(--neumorph-shadow),
+                -6px -6px 10px var(--neumorph-light);
+            color: var(--text-dark);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .neu-btn:active,
+        .neu-btn.active {
+            box-shadow: inset 6px 6px 10px var(--neumorph-shadow),
+                inset -6px -6px 10px var(--neumorph-light);
+            transform: translateY(2px);
+        }
+
+        .neu-btn-primary {
+            color: var(--brand-color);
+        }
+
+        /* Layout */
+        .app-grid {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            height: 100vh;
+            padding: 2rem;
+            gap: 2rem;
+        }
+
+        /* Sidebar */
+        aside {
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+        }
+
+        .brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--brand-color);
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5);
+        }
+
+        /* 3D Rotating Logo Logic */
+        .cube-wrapper {
+            perspective: 800px;
+            width: 40px;
+            height: 40px;
+        }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: spin 5s infinite linear;
+        }
+
+        .face {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: var(--brand-color);
+            opacity: 0.8;
+            border: 2px solid white;
+        }
+
+        .front {
+            transform: rotateY(0deg) translateZ(20px);
+        }
+
+        .back {
+            transform: rotateY(180deg) translateZ(20px);
+        }
+
+        .right {
+            transform: rotateY(90deg) translateZ(20px);
+        }
+
+        .left {
+            transform: rotateY(-90deg) translateZ(20px);
+        }
+
+        .top {
+            transform: rotateX(90deg) translateZ(20px);
+        }
+
+        .bottom {
+            transform: rotateX(-90deg) translateZ(20px);
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotateX(0) rotateY(0);
+            }
+
+            to {
+                transform: rotateX(360deg) rotateY(360deg);
+            }
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 600;
+            border-radius: 12px;
+            transition: 0.2s;
+        }
+
+        .nav-item:hover {
+            color: var(--brand-color);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            color: var(--brand-color);
+            box-shadow: inset 4px 4px 8px var(--neumorph-shadow),
+                inset -4px -4px 8px var(--neumorph-light);
+        }
+
+        /* Main */
+        main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 0 0.5rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 1rem;
+            padding-bottom: 2rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+
+        .card {
+            background: var(--bg-body);
+            border-radius: var(--radius);
+            box-shadow: 8px 8px 16px var(--neumorph-shadow),
+                -8px -8px 16px var(--neumorph-light);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Tables */
+        .table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+        }
+
+        .table th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--text-main);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table td {
+            background: var(--bg-body);
+            padding: 1rem;
+            border-top: 1px solid white;
+            border-bottom: 1px solid #d1d9e6;
+        }
+
+        .table tr td:first-child {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+            border-left: 1px solid white;
+        }
+
+        .table tr td:last-child {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+            border-right: 1px solid #d1d9e6;
+        }
+
+        .badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.1),
+                inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+        }
+
+        .badge-warning {
+            background: #fefcbf;
+            color: #b7791f;
+        }
+
+        .badge-success {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .badge-neutral {
+            background: #e2e8f0;
+            color: #718096;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-grid">
+        <aside class="neu-panel">
+            <div class="brand">
+                <div class="cube-wrapper">
+                    <div class="cube">
+                        <div class="face front"></div>
+                        <div class="face back"></div>
+                        <div class="face right"></div>
+                        <div class="face left"></div>
+                        <div class="face top"></div>
+                        <div class="face bottom"></div>
+                    </div>
+                </div>
+                NUCLEUS
+            </div>
+
+            <nav>
+                <a href="{% url 'staff_dashboard' %}" class="nav-item">Dashboard</a>
+                <a href="{% url 'patient_list' %}" class="nav-item">Patient Records</a>
+                <a href="{% url 'upload_medical_report' %}" class="nav-item">Upload Reports</a>
+                <a href="{% url 'add_health_metric' %}" class="nav-item">Add Metrics</a>
+                <div style="margin-top: 10rem;">
+                    <a href="/" class="nav-item" style="color: var(--accent-red)">Logout</a>
+                </div>
+            </nav>
+        </aside>
+
+        <main>
+            <header>
+                <div>
+                    <div style="font-size: 0.9rem; font-weight: 600; opacity: 0.6;">Hospital OS v3.0</div>
+                    <div class="page-title">{% block page_title %}Overview{% endblock %}</div>
+                </div>
+                <button class="neu-btn">
+                    <span>🔔</span> Notifications
+                </button>
+            </header>
+
+            <div class="scroll-area">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CityCare Hospital – OPD Queue & Booking</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg-page: #f5f7fb;
+      --bg-surface: #ffffff;
+
+      --primary: #1d4ed8;
+      --primary-soft: #dbeafe;
+      --primary-dark: #0b3a9c;
+      --accent: #0f766e;
+      --danger: #b91c1c;
+
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --border-soft: #cbd5e1;
+      --focus-ring: #f97316;
+
+      --radius-lg: 18px;
+      --shadow-soft: 0 14px 35px rgba(15, 23, 42, 0.12);
+      --shadow-header: 0 10px 28px rgba(15, 23, 42, 0.35);
+      --transition-fast: 0.18s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-main);
+      background:
+        radial-gradient(circle at 0 0, #e0f2fe, transparent 60%),
+        radial-gradient(circle at 100% 100%, #ccfbf1, transparent 55%),
+        linear-gradient(180deg, #eff3fb, #f5f7fb);
+    }
+
+    a { color: inherit; }
+
+    p, li, td, th, label, input, select, button, a {
+      color: var(--text-main);
+    }
+    .info-text,
+    .subtitle,
+    .steps,
+    .text-muted {
+      color: var(--text-muted);
+    }
+
+    /* HEADER */
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: linear-gradient(120deg, #0f172a, #1d4ed8);
+      color: #f9fafb;
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-header);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: conic-gradient(from 210deg, #22c55e, #0ea5e9, #22c55e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 19px;
+      box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.55);
+    }
+
+    header h1 {
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    header .subtitle {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .top-right {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+      text-align: right;
+      font-size: 11px;
+    }
+
+    .status span:last-child {
+      background: rgba(15, 23, 42, 0.35);
+      padding: 3px 9px;
+      border-radius: 999px;
+      margin-left: 6px;
+      font-size: 10px;
+    }
+
+    .language-switcher {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .language-switcher select {
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      border: 0;
+      background: rgba(15, 23, 42, 0.25);
+      color: #f9fafb;
+      outline: none;
+    }
+
+    .help-button {
+      margin-top: 2px;
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 250, 252, 0.7);
+      background: radial-gradient(circle at 0 0, #f97316, #dc2626);
+      color: #fff;
+      text-decoration: none;
+      box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.3);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .help-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.35);
+    }
+
+    /* MAIN */
+
+    main {
+      max-width: 1040px;
+      margin: 18px auto 28px;
+      padding: 0 14px 28px;
+    }
+
+    .welcome {
+      background: radial-gradient(circle at 0 0, #dbeafe, transparent 60%), #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 18px 22px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-soft);
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome::before {
+      content: "";
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 60%);
+      top: -50px;
+      right: -25px;
+    }
+
+    .welcome-inner {
+      position: relative;
+      max-width: 640px;
+    }
+
+    .welcome h2 {
+      font-size: 19px;
+      margin-bottom: 6px;
+    }
+
+    .welcome p {
+      font-size: 13px;
+    }
+
+    .steps {
+      margin-top: 10px;
+      font-size: 13px;
+      padding-left: 18px;
+    }
+
+    .steps li {
+      margin-bottom: 4px;
+    }
+
+    /* ACTION CARDS */
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .action-card {
+      border-radius: var(--radius-lg);
+      padding: 16px 14px 14px;
+      background: var(--bg-surface);
+      border: 1px solid #e0e7ff;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      min-height: 40px;
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast);
+    }
+
+    .action-card::after {
+      content: "";
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.08);
+      bottom: -35px;
+      right: -12px;
+    }
+
+    .action-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+      border-color: rgba(37, 99, 235, 0.7);
+      background: linear-gradient(135deg, #ffffff, #eff6ff);
+    }
+
+    .action-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 10px 18px rgba(15, 23, 42, 0.25);
+    }
+
+    .icon-green {
+      background: linear-gradient(135deg, #bbf7d0, #22c55e);
+    }
+    .icon-blue {
+      background: linear-gradient(135deg, #bfdbfe, #60a5fa);
+    }
+    .icon-orange {
+      background: linear-gradient(135deg, #fed7aa, #fb923c);
+    }
+
+    .action-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .action-text {
+      font-size: 12px;
+    }
+
+    .action-button {
+      margin-top: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(90deg, var(--primary-dark), var(--accent));
+      color: #ffffff;
+      font-size: 12px;
+      cursor: pointer;
+      min-height: 40px;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.45);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .action-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.6);
+    }
+
+    /* CONTENT PANELS */
+
+    .content-panel {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.9fr);
+      gap: 18px;
+    }
+
+    .panel {
+      border-radius: var(--radius-lg);
+      padding: 14px 16px 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+    }
+
+    #queue > .panel:first-child {
+      background: linear-gradient(160deg, #eff6ff, #ffffff);
+    }
+
+    #booking.panel,
+    #booking .panel,
+    .panel#booking {
+      background: linear-gradient(160deg, #ecfeff, #ffffff);
+    }
+
+    #resources > .panel:first-child {
+      background: linear-gradient(160deg, #f0fdf4, #ffffff);
+    }
+
+    #resources > .panel:last-child {
+      background: linear-gradient(160deg, #f3f4f6, #ffffff);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .panel-header h3 {
+      font-size: 15px;
+    }
+
+    .panel-header small a {
+      font-size: 11px;
+      color: #0ea5e9;
+      text-decoration: none;
+    }
+
+    .panel-header small a:hover {
+      text-decoration: underline;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 6px 6px;
+      vertical-align: middle;
+    }
+
+    th {
+      border-bottom: 1px solid var(--border-soft);
+      font-weight: 600;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(248, 250, 252, 0.9);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .pill.waiting  { background:#e0e7ff; color:#1d4ed8; }
+    .pill.in-room  { background:#bbf7d0; color:#166534; }
+    .pill.completed{ background:#e5e7eb; color:#111827; }
+    .pill.low      { background:#fef3c7; color:#92400e; }
+    .pill.good     { background:#bbf7d0; color:#065f46; }
+
+    .info-text {
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    /* BOOKING */
+
+    .booking-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .booking-form label {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .booking-form input,
+    .booking-form select {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      font-size: 13px;
+      background: #f9fafb;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+    }
+
+    .booking-form input:focus-visible,
+    .booking-form select:focus-visible {
+      outline: none;
+      border-color: var(--primary-dark);
+      background: #ffffff;
+      box-shadow: 0 0 0 2px var(--primary-soft);
+    }
+
+    .booking-form button {
+      grid-column: 1 / -1;
+      margin-top: 8px;
+      padding: 9px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(90deg, var(--primary-dark), #16a34a);
+      color: #ffffff;
+      font-size: 13px;
+      cursor: pointer;
+      min-height: 40px;
+      box-shadow: 0 10px 20px rgba(22, 163, 74, 0.45);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .booking-form button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 26px rgba(22, 163, 74, 0.6);
+    }
+
+    .booking-list {
+      margin-top: 10px;
+      border-top: 1px dashed #e5e7eb;
+      padding-top: 6px;
+      max-height: 140px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    .booking-item {
+      padding: 4px 0;
+      border-bottom: 1px dotted #e5e7eb;
+    }
+
+    .booking-item span {
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    .booking-empty {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .small-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .list {
+      font-size: 12px;
+      list-style: none;
+    }
+
+    .list li {
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+
+    /* POPUPS */
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+      z-index: 80;
+    }
+
+    .overlay:target {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .popup {
+      background: #f4f7fb;
+      border-radius: 18px;
+      width: 90%;
+      max-width: 380px;
+      padding: 16px 18px 14px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.45);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+    }
+
+    .popup::before {
+      content: "";
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.22), transparent 60%);
+      top: -45px;
+      left: -30px;
+    }
+
+    .popup h2 {
+      font-size: 16px;
+      margin-bottom: 4px;
+      position: relative;
+    }
+
+    .popup p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    .popup .highlight {
+      background: #fee2e2;
+      color: var(--danger);
+      padding: 6px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .popup-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+      position: relative;
+    }
+
+    .popup-actions a {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      text-decoration: none;
+    }
+
+    .popup-actions .secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .popup-actions .primary {
+      background: var(--primary);
+      color: #ecfdf5;
+    }
+
+    .popup .close {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      text-decoration: none;
+      font-size: 18px;
+      color: var(--text-muted);
+      z-index: 2;
+    }
+
+    /* ACCESSIBLE FOCUS */
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    [role="button"]:focus-visible {
+      outline: 3px solid var(--focus-ring);
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
+
+    a:focus,
+    button:focus,
+    input:focus,
+    select:focus {
+      outline: none;
+    }
+
+    /* REDUCED MOTION */
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        scroll-behavior: auto !important;
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      html {
+        scroll-behavior: auto;
+      }
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 900px) {
+      .actions {
+        grid-template-columns: 1fr;
+      }
+      .content-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .top-right {
+        align-items: flex-start;
+        text-align: left;
+      }
+      .welcome {
+        padding: 16px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden="true">HC</div>
+    <div>
+      <h1 data-i18n="title">CityCare Hospital</h1>
+      <div class="subtitle" data-i18n="subtitle">
+        Simple screen to see your turn, book a visit, and view emergency rush.
+      </div>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="status">
+      <span data-i18n="systemStatusLabel">Status</span>
+      <span data-i18n="systemStatusValue">Online · Updated often</span>
+    </div>
+    <div class="language-switcher">
+      <label for="langSelect" data-i18n="languageLabel">Language:</label>
+      <select id="langSelect">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="ml">മലയാളം</option>
+      </select>
+    </div>
+    <a href="#popup-help" class="help-button" data-i18n="helpButton">Need quick help?</a>
+  </div>
+</header>
+
+<main>
+  <section class="welcome">
+    <div class="welcome-inner">
+      <h2 data-i18n="welcomeTitle">Welcome</h2>
+      <p data-i18n="welcomeText">
+        This screen is for patients and family. You can: see your queue position, book an OP visit, and check how busy the hospital is.
+      </p>
+      <ul class="steps">
+        <li data-i18n="step1">Step 1: Choose one big button below.</li>
+        <li data-i18n="step2">Step 2: Read the short message on that card.</li>
+        <li data-i18n="step3">Step 3: If you need help, show this screen to a staff member.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="actions">
+    <div class="action-card" onclick="scrollToSection('queue')" tabindex="0" role="button" aria-label="Go to queue section">
+      <div class="action-icon icon-green">👣</div>
+      <div class="action-title" data-i18n="actionQueueTitle">Check my turn</div>
+      <div class="action-text" data-i18n="actionQueueText">
+        See current tokens inside OPD and how long you may need to wait.
+      </div>
+      <button class="action-button" type="button" data-i18n="actionQueueButton">Show queue</button>
+    </div>
+
+    <div class="action-card" onclick="scrollToSection('booking')" tabindex="0" role="button" aria-label="Go to booking section">
+      <div class="action-icon icon-blue">📅</div>
+      <div class="action-title" data-i18n="actionBookingTitle">Book a visit</div>
+      <div class="action-text" data-i18n="actionBookingText">
+        Book an OP ticket by filling your name, age, doctor and date.
+      </div>
+      <button class="action-button" type="button" data-i18n="actionBookingButton">Book now</button>
+    </div>
+
+    <div class="action-card" onclick="scrollToSection('resources')" tabindex="0" role="button" aria-label="Go to beds and emergency section">
+      <div class="action-icon icon-orange">🏥</div>
+      <div class="action-title" data-i18n="actionResourceTitle">Beds & emergency</div>
+      <div class="action-text" data-i18n="actionResourceText">
+        See free beds in casualty, ward, ICU and oxygen/blood status.
+      </div>
+      <button class="action-button" type="button" data-i18n="actionResourceButton">View status</button>
+    </div>
+  </section>
+
+  <section class="content-panel" id="queue">
+    <div class="panel">
+      <div class="panel-header">
+        <h3 data-i18n="sectionQueueTitle">OPD queue (example)</h3>
+        <small>
+          <a href="#popup-delay" data-i18n="linkDelayNotice">Doctor delay notice</a>
+        </small>
+      </div>
+      <table aria-label="Example OPD queue">
+        <thead>
+          <tr>
+            <th data-i18n="thToken">Token</th>
+            <th data-i18n="thPatient">Patient</th>
+            <th data-i18n="thDoctor">Doctor</th>
+            <th data-i18n="thSpeciality">Dept</th>
+            <th data-i18n="thStatus">Status</th>
+            <th data-i18n="thETA">Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>OP‑021</td>
+            <td>Rahul</td>
+            <td>Dr. Rao</td>
+            <td data-i18n="specCardiology">Heart</td>
+            <td><span class="pill in-room" data-i18n="statusInRoom">Inside</span></td>
+            <td>–</td>
+          </tr>
+          <tr>
+            <td>OP‑022</td>
+            <td>Priya</td>
+            <td>Dr. Rao</td>
+            <td data-i18n="specCardiology">Heart</td>
+            <td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td>
+            <td>~ 6 min</td>
+          </tr>
+          <tr>
+            <td>OP‑045</td>
+            <td>Mohammed</td>
+            <td>Dr. Iyer</td>
+            <td data-i18n="specOrtho">Bones</td>
+            <td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td>
+            <td>~ 12 min</td>
+          </tr>
+          <tr>
+            <td>OP‑052</td>
+            <td>Lakshmi</td>
+            <td>Dr. Menon</td>
+            <td data-i18n="specPedia">Children</td>
+            <td><span class="pill waiting" data-i18n="statusWaiting">Waiting</span></td>
+            <td>~ 8 min</td>
+          </tr>
+          <tr>
+            <td>OP‑010</td>
+            <td>Arun</td>
+            <td>Dr. Das</td>
+            <td data-i18n="specGeneral">General</td>
+            <td><span class="pill completed" data-i18n="statusCompleted">Finished</span></td>
+            <td>–</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="info-text" data-i18n="queueNote">
+        This is only a sample. In a real hospital, this table moves automatically as tokens are called.
+      </p>
+    </div>
+
+    <div class="panel" id="booking">
+      <div class="panel-header">
+        <h3 data-i18n="sectionBookingTitle">Book an OP ticket</h3>
+      </div>
+      <form class="booking-form" id="bookingForm" method="post" action="/api/book">
+        <div>
+          <label for="pname" data-i18n="labelName">Patient name</label>
+          <input id="pname" name="pname" type="text" placeholder="Write full name" />
+        </div>
+        <div>
+          <label for="page" data-i18n="labelAge">Age</label>
+          <input id="page" name="page" type="number" min="0" placeholder="Age" />
+        </div>
+        <div>
+          <label for="dept" data-i18n="labelDept">Department</label>
+          <select id="dept" name="dept">
+            <option data-i18n="specCardiology">Heart</option>
+            <option data-i18n="specOrtho">Bones</option>
+            <option data-i18n="specPedia">Children</option>
+            <option data-i18n="specGeneral">General</option>
+          </select>
+        </div>
+        <div>
+          <label for="doc" data-i18n="labelDoctor">Doctor</label>
+          <select id="doc" name="doc">
+            <option>Dr. Rao</option>
+            <option>Dr. Iyer</option>
+            <option>Dr. Menon</option>
+            <option data-i18n="optAnyDoc">Any doctor</option>
+          </select>
+        </div>
+        <div>
+          <label for="date" data-i18n="labelDate">Date</label>
+          <input id="date" name="date" type="date" />
+        </div>
+        <div>
+          <label for="slot" data-i18n="labelSlot">Time</label>
+          <select id="slot" name="slot">
+            <option>Morning</option>
+            <option>Afternoon</option>
+          </select>
+        </div>
+        <button type="submit" data-i18n="btnGenerate">Get your token</button>
+      </form>
+      <div class="booking-list" id="bookingList">
+        <div class="booking-empty" data-i18n="bookingEmpty">
+          When you book, your token will appear here.
+        </div>
+      </div>
+      <p class="info-text" data-i18n="bookingNote">
+        This demo saves only in this hospital system. Staff can help you with any problem.
+      </p>
+    </div>
+  </section>
+
+  <section class="content-panel" id="resources">
+    <div class="panel">
+      <div class="panel-header">
+        <h3 data-i18n="sectionResourcesTitle">Beds & oxygen</h3>
+      </div>
+      <table aria-label="Current resources">
+        <thead>
+          <tr>
+            <th data-i18n="thResource">Area</th>
+            <th data-i18n="thStatus">Status</th>
+            <th data-i18n="thDetails">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-i18n="resCasualtyBeds">Casualty (Emergency)</td>
+            <td><span class="pill low" data-i18n="resCasualtyStatus">3 beds free</span></td>
+            <td data-i18n="resCasualtyDetails">9 used / 12 total</td>
+          </tr>
+          <tr>
+            <td data-i18n="resWardBeds">Ward rooms</td>
+            <td><span class="pill good" data-i18n="resWardStatus">Many beds free</span></td>
+            <td data-i18n="resWardDetails">56 used / 80 total</td>
+          </tr>
+          <tr>
+            <td data-i18n="resICUBeds">ICU</td>
+            <td><span class="pill low" data-i18n="resICUStatus">2 beds free</span></td>
+            <td data-i18n="resICUDetails">Very serious patients first</td>
+          </tr>
+          <tr>
+            <td data-i18n="resOxygen">Oxygen cylinders</td>
+            <td><span class="pill low" data-i18n="resOxygenStatus">26 in use</span></td>
+            <td data-i18n="resOxygenDetails">10 kept ready as backup</td>
+          </tr>
+          <tr>
+            <td data-i18n="resBlood">Blood bank</td>
+            <td><span class="pill good" data-i18n="resBloodStatus">OK</span></td>
+            <td data-i18n="resBloodDetails">O- and B- low, others okay</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="small-title" data-i18n="updatesTitle">Important messages</div>
+      <ul class="list">
+        <li data-i18n="msg1">If you feel very unwell, go to the Casualty desk, not just the queue.</li>
+        <li data-i18n="msg2">Show this screen to the help desk if you do not understand it.</li>
+        <li data-i18n="msg3">Children, pregnant women and very old patients may get priority.</li>
+        <li data-i18n="msg4">You can change the language at the top right at any time.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<div id="popup-delay" class="overlay" aria-modal="true">
+  <div class="popup" role="dialog" aria-labelledby="delayTitle">
+    <a class="close" href="#">&times;</a>
+    <h2 id="delayTitle" data-i18n="popupTitle">Doctor coming late</h2>
+    <div class="highlight" data-i18n="popupHighlight">
+      Orthopedics doctor will start about 30 minutes late today.
+    </div>
+    <p data-i18n="popupDetails1">
+      Your token may be called later than shown. Watch the screen or ask the help desk.
+    </p>
+    <p data-i18n="popupDetails2">
+      If your pain is very strong, please go to the Casualty desk now.
+    </p>
+    <div class="popup-actions">
+      <a href="#" class="secondary" data-i18n="popupDismiss">OK</a>
+      <a href="#queue" class="primary" data-i18n="popupViewQueue">Back to queue</a>
+    </div>
+  </div>
+</div>
+
+<div id="popup-help" class="overlay" aria-modal="true">
+  <div class="popup" role="dialog" aria-labelledby="helpTitle">
+    <a class="close" href="#">&times;</a>
+    <h2 id="helpTitle" data-i18n="helpTitle">How to use this screen</h2>
+    <div class="highlight" data-i18n="helpHighlight">
+      Choose Queue, Booking or Beds card below. Staff can help you anytime.
+    </div>
+    <p data-i18n="helpDetails1">
+      For normal OP visits, first book a token using the "Book a visit" card.
+    </p>
+    <p data-i18n="helpDetails2">
+      If you feel very sick or have heavy pain, go to the Casualty desk directly.
+    </p>
+    <div class="popup-actions">
+      <a href="#booking" class="primary" data-i18n="helpGoBooking">Go to booking</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function scrollToSection(id) {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  }
+
+  const form = document.getElementById("bookingForm");
+  const listEl = document.getElementById("bookingList");
+  const langSelect = document.getElementById("langSelect");
+  const STORAGE_KEY_DRAFT = "hospital_booking_draft";
+
+  /* ------- API helpers (Flask backend) ------- */
+
+  async function loadBookingsFromServer() {
+    try {
+      const res = await fetch("/api/bookings");
+      const data = await res.json();
+      renderBookings(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function renderBookings(bookings) {
+    listEl.innerHTML = "";
+    if (!bookings.length) {
+      const empty = document.createElement("div");
+      empty.className = "booking-empty";
+      empty.setAttribute("data-i18n", "bookingEmpty");
+      empty.textContent = translations[currentLang].bookingEmpty;
+      listEl.appendChild(empty);
+      return;
+    }
+    bookings.forEach((b) => {
+      const div = document.createElement("div");
+      div.className = "booking-item";
+      div.innerHTML =
+        `<span>${b.token}</span> – ${b.name}, ${b.age} yrs · ${b.dept}, ${b.doc} · ${b.date} (${b.slot})`;
+      listEl.appendChild(div);
+    });
+  }
+
+  /* ------- Draft save / prefill with localStorage ------- */
+
+  function saveDraft() {
+    const data = {
+      pname: form.elements["pname"].value,
+      page:  form.elements["page"].value,
+      dept:  form.elements["dept"].value,
+      doc:   form.elements["doc"].value,
+      date:  form.elements["date"].value,
+      slot:  form.elements["slot"].value
+    };
+    localStorage.setItem(STORAGE_KEY_DRAFT, JSON.stringify(data));
+  }
+
+  function prefillDraft() {
+    const saved = localStorage.getItem(STORAGE_KEY_DRAFT);
+    if (!saved) return;
+    try {
+      const data = JSON.parse(saved);
+      Object.keys(data).forEach((key) => {
+        if (form.elements[key]) {
+          form.elements[key].value = data[key];
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  form.addEventListener("input", saveDraft);
+  form.addEventListener("change", saveDraft);
+
+  /* ------- Submit to backend ------- */
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const name = formData.get("pname").trim();
+    const age = formData.get("page").trim();
+    const date = formData.get("date").trim();
+
+    if (!name || !age || !date) {
+      alert(translations[currentLang].alertFill);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/book", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        alert(data.message || "Error saving booking");
+        return;
+      }
+
+      alert(translations[currentLang].alertToken + " " + data.token);
+      form.reset();
+      localStorage.removeItem(STORAGE_KEY_DRAFT);
+      await loadBookingsFromServer();
+    } catch (err) {
+      console.error(err);
+      alert("Network error – please try again.");
+    }
+  });
+
+  /* ------- Translations ------- */
+
+  const translations = {
+    en: {
+      title: "CityCare Hospital",
+      subtitle: "Simple screen to see your turn, book a visit, and view emergency rush.",
+      systemStatusLabel: "Status",
+      systemStatusValue: "Online · Updated often",
+      languageLabel: "Language:",
+      helpButton: "Need quick help?",
+      welcomeTitle: "Welcome",
+      welcomeText:
+        "This screen is for patients and family. You can: see your queue position, book an OP visit, and check how busy the hospital is.",
+      step1: "Step 1: Choose one big button below.",
+      step2: "Step 2: Read the short message on that card.",
+      step3: "Step 3: If you need help, show this screen to a staff member.",
+      actionQueueTitle: "Check my turn",
+      actionQueueText: "See current tokens inside OPD and how long you may need to wait.",
+      actionQueueButton: "Show queue",
+      actionBookingTitle: "Book a visit",
+      actionBookingText: "Book an OP ticket by filling your name, age, doctor and date.",
+      actionBookingButton: "Book now",
+      actionResourceTitle: "Beds & emergency",
+      actionResourceText: "See free beds in casualty, ward, ICU and oxygen/blood status.",
+      actionResourceButton: "View status",
+      sectionQueueTitle: "OPD queue (example)",
+      linkDelayNotice: "Doctor delay notice",
+      thToken: "Token",
+      thPatient: "Patient",
+      thDoctor: "Doctor",
+      thSpeciality: "Dept",
+      thStatus: "Status",
+      thETA: "Time",
+      statusInRoom: "Inside",
+      statusWaiting: "Waiting",
+      statusCompleted: "Finished",
+      queueNote:
+        "This is only a sample. In a real hospital, this table moves automatically as tokens are called.",
+      specCardiology: "Heart",
+      specOrtho: "Bones",
+      specPedia: "Children",
+      specGeneral: "General",
+      sectionBookingTitle: "Book an OP ticket",
+      labelName: "Patient name",
+      labelAge: "Age",
+      labelDept: "Department",
+      labelDoctor: "Doctor",
+      labelDate: "Date",
+      labelSlot: "Time",
+      optAnyDoc: "Any doctor",
+      btnGenerate: "Get your token",
+      bookingEmpty: "When you book, your token will appear here.",
+      bookingNote:
+        "This demo saves only in this hospital system. Staff can help you with any problem.",
+      sectionResourcesTitle: "Beds & oxygen",
+      thResource: "Area",
+      thDetails: "Details",
+      resCasualtyBeds: "Casualty (Emergency)",
+      resCasualtyStatus: "3 beds free",
+      resCasualtyDetails: "9 used / 12 total",
+      resWardBeds: "Ward rooms",
+      resWardStatus: "Many beds free",
+      resWardDetails: "56 used / 80 total",
+      resICUBeds: "ICU",
+      resICUStatus: "2 beds free",
+      resICUDetails: "Very serious patients first",
+      resOxygen: "Oxygen cylinders",
+      resOxygenStatus: "26 in use",
+      resOxygenDetails: "10 kept ready as backup",
+      resBlood: "Blood bank",
+      resBloodStatus: "OK",
+      resBloodDetails: "O- and B- low, others okay",
+      updatesTitle: "Important messages",
+      msg1: "If you feel very unwell, go to the Casualty desk, not just the queue.",
+      msg2: "Show this screen to the help desk if you do not understand it.",
+      msg3: "Children, pregnant women and very old patients may get priority.",
+      msg4: "You can change the language at the top right at any time.",
+      popupTitle: "Doctor coming late",
+      popupHighlight: "Orthopedics doctor will start about 30 minutes late today.",
+      popupDetails1:
+        "Your token may be called later than shown. Watch the screen or ask the help desk.",
+      popupDetails2: "If your pain is very strong, please go to the Casualty desk now.",
+      popupDismiss: "OK",
+      popupViewQueue: "Back to queue",
+      helpTitle: "How to use this screen",
+      helpHighlight:
+        "Choose Queue, Booking or Beds card below. Staff can help you anytime.",
+      helpDetails1:
+        "For normal OP visits, first book a token using the \"Book a visit\" card.",
+      helpDetails2:
+        "If you feel very sick or have heavy pain, go to the Casualty desk directly.",
+      helpGoBooking: "Go to booking",
+      alertFill: "Please fill name, age and date.",
+      alertToken: "Your token number is"
+    },
+    hi: {
+      title: "सिटीकेयर अस्पताल",
+      subtitle:
+        "अपनी बारी देखें, विज़िट बुक करें और इमरजेंसी भीड़ की स्थिति देखें।",
+      systemStatusLabel: "स्थिति",
+      systemStatusValue: "ऑनलाइन · अक्सर अपडेट",
+      languageLabel: "भाषा:",
+      helpButton: "जल्दी मदद चाहिए?",
+      welcomeTitle: "स्वागत है",
+      welcomeText:
+        "यह स्क्रीन मरीजों और परिजनों के लिए है। आप अपनी कतार, OP बुकिंग और अस्पताल की व्यस्तता देख सकते हैं।",
+      step1: "कदम 1: नीचे से एक बड़ा बटन चुनें।",
+      step2: "कदम 2: कार्ड पर छोटा संदेश ध्यान से पढ़ें।",
+      step3: "कदम 3: समझ न आए तो यह स्क्रीन स्टाफ को दिखाएँ।",
+      actionQueueTitle: "मेरी बारी देखें",
+      actionQueueText: "OPD के अंदर चल रहे टोकन और अनुमानित प्रतीक्षा समय देखें।",
+      actionQueueButton: "कतार देखें",
+      actionBookingTitle: "विज़िट बुक करें",
+      actionBookingText:
+        "अपना नाम, उम्र, डॉक्टर और तारीख भरकर OP टिकट बुक करें।",
+      actionBookingButton: "अभी बुक करें",
+      actionResourceTitle: "बेड और आपातकाल",
+      actionResourceText:
+        "कैज़ुअल्टी, वार्ड, ICU में खाली बेड और ऑक्सीजन/ब्लड की स्थिति देखें।",
+      actionResourceButton: "स्थिति देखें",
+      sectionQueueTitle: "OPD कतार (उदाहरण)",
+      linkDelayNotice: "डॉक्टर देरी सूचना",
+      thToken: "टोकन",
+      thPatient: "मरीज",
+      thDoctor: "डॉक्टर",
+      thSpeciality: "विभाग",
+      thStatus: "स्थिति",
+      thETA: "समय",
+      statusInRoom: "अंदर",
+      statusWaiting: "प्रतीक्षा",
+      statusCompleted: "पूरा",
+      queueNote:
+        "यह केवल उदाहरण है। असली अस्पताल में टोकन कॉल होते ही यह टेबल अपने आप बदलती है।",
+      specCardiology: "हार्ट",
+      specOrtho: "हड्डी",
+      specPedia: "बच्चे",
+      specGeneral: "जनरल",
+      sectionBookingTitle: "OP टिकट बुक करें",
+      labelName: "मरीज का नाम",
+      labelAge: "उम्र",
+      labelDept: "विभाग",
+      labelDoctor: "डॉक्टर",
+      labelDate: "तारीख",
+      labelSlot: "समय",
+      optAnyDoc: "कोई भी डॉक्टर",
+      btnGenerate: "टोकन प्राप्त करें",
+      bookingEmpty: "आप बुक करेंगे तो आपका टोकन यहाँ दिखाई देगा।",
+      bookingNote:
+        "यह डेमो केवल इस सिस्टम में सेव होता है। किसी भी समस्या पर स्टाफ से मदद लें।",
+      sectionResourcesTitle: "बेड और ऑक्सीजन",
+      thResource: "क्षेत्र",
+      thDetails: "विवरण",
+      resCasualtyBeds: "कैज़ुअल्टी (आपातकाल)",
+      resCasualtyStatus: "3 बेड खाली",
+      resCasualtyDetails: "9 भरे / 12 कुल",
+      resWardBeds: "वार्ड रूम",
+      resWardStatus: "काफ़ी बेड खाली",
+      resWardDetails: "56 भरे / 80 कुल",
+      resICUBeds: "ICU",
+      resICUStatus: "2 बेड खाली",
+      resICUDetails: "बहुत गंभीर मरीजों को पहले प्राथमिकता।",
+      resOxygen: "ऑक्सीजन सिलिंडर",
+      resOxygenStatus: "26 उपयोग में",
+      resOxygenDetails: "10 सिलिंडर बैकअप में तैयार",
+      resBlood: "ब्लड बैंक",
+      resBloodStatus: "ठीक",
+      resBloodDetails: "O- और B- थोड़ा कम, बाकी ठीक।",
+      updatesTitle: "महत्वपूर्ण संदेश",
+      msg1:
+        "बहुत ज्यादा तकलीफ हो तो केवल कतार में न रहें, कैज़ुअल्टी डेस्क पर जाएँ।",
+      msg2:
+        "अगर समझ न आए तो यह स्क्रीन हेल्प डेस्क को दिखाएँ।",
+      msg3:
+        "बच्चों, गर्भवती महिलाओं और बहुत बुज़ुर्ग मरीजों को प्राथमिकता मिल सकती है।",
+      msg4:
+        "आप किसी भी समय ऊपर दाएँ से भाषा बदल सकते हैं।",
+      popupTitle: "डॉक्टर देर से आएँगे",
+      popupHighlight: "आज ऑर्थोपेडिक डॉक्टर लगभग 30 मिनट देर से शुरू करेंगे।",
+      popupDetails1:
+        "आपका टोकन दिखाए गए समय से बाद में कॉल हो सकता है। स्क्रीन देखें या हेल्प डेस्क से पूछें।",
+      popupDetails2:
+        "अगर दर्द बहुत ज़्यादा हो तो तुरंत कैज़ुअल्टी डेस्क पर जाएँ।",
+      popupDismiss: "ठीक है",
+      popupViewQueue: "कतार पर वापस जाएँ",
+      helpTitle: "यह स्क्रीन कैसे उपयोग करें",
+      helpHighlight:
+        "नीचे से कतार, बुकिंग या बेड कार्ड चुनें। स्टाफ हमेशा सहायता कर सकता है।",
+      helpDetails1:
+        "साधारण OP विज़िट के लिए पहले \"विज़िट बुक करें\" कार्ड से टोकन बुक करें।",
+      helpDetails2:
+        "बहुत ज़्यादा बीमारी या दर्द हो तो सीधे कैज़ुअल्टी डेस्क पर जाएँ।",
+      helpGoBooking: "बुकिंग पर जाएँ",
+      alertFill: "कृपया नाम, उम्र और तारीख भरें।",
+      alertToken: "आपका टोकन नंबर है"
+    },
+    ml: {
+      title: "സിറ്റി കെയർ ആശുപത്രി",
+      subtitle:
+        "നിങ്ങളുടെ ടേൺ, ബുക്ക് ചെയ്ത OP, അടിയന്തര തിരക്ക് എല്ലാം ഇവിടെ കാണാം.",
+      systemStatusLabel: "സ്ഥിതി",
+      systemStatusValue: "ഓൺലൈൻ · ഇടയ്ക്കിടെ അപ്ഡേറ്റ്",
+      languageLabel: "ഭാഷ:",
+      helpButton: "വേഗം സഹായം വേണോ?",
+      welcomeTitle: "സ്വാഗതം",
+      welcomeText:
+        "ഈ സ്ക്രീൻ രോഗികൾക്കും ബന്ധുക്കൾക്കുമാണ്. നിങ്ങളുടെ ക്യൂ, OP ബുക്കിംഗ്, ആശുപത്രിയുടെ തിരക്ക് എന്നിവ ഇവിടെ കാണാം.",
+      step1: "പടി 1: താഴെയുള്ള വലിയ ബട്ടണിൽ ഒന്നെന്തെങ്കിലും തിരഞ്ഞെടുക്കുക.",
+      step2: "പടി 2: ആ കാർഡിലേത് ചുരുക്ക സന്ദേശം ശ്രദ്ധിച്ച് വായിക്കുക.",
+      step3: "പടി 3: മനസ്സിലാകാത്ത പക്ഷം ഈ സ്ക്രീൻ സ്റ്റാഫിന് കാണിക്കുക.",
+      actionQueueTitle: "എന്റെ ടേൺ നോക്കൂ",
+      actionQueueText:
+        "OPD യ്ക്കുള്ളിലെ ടോക്കണുകളും കാത്തിരിപ്പ് സമയം ഏകദേശമായി കാണാം.",
+      actionQueueButton: "ക്യൂ കാണിക്കുക",
+      actionBookingTitle: "വിസിറ്റ് ബുക്ക് ചെയ്യുക",
+      actionBookingText:
+        "പേര്, വയസ്, ഡോക്ടർ, തീയതി എന്നിവ നൽകി OP ടിക്കറ്റ് ബുക്ക് ചെയ്യുക.",
+      actionBookingButton: "ഇപ്പോൾ ബുക്ക് ചെയ്യുക",
+      actionResourceTitle: "ബെഡുകളും അടിയന്തരവും",
+      actionResourceText:
+        "കാഷ്വൽട്ടി, വാർഡ്, ICU ബെഡ് നിലയും ഓക്സിജൻ/ബ്ലഡ് നിലയും കാണാം.",
+      actionResourceButton: "സ്റ്റാറ്റസ് കാണുക",
+      sectionQueueTitle: "OPD ക്യൂ (ഉദാഹരണം)",
+      linkDelayNotice: "ഡോക്ടർ വൈകും വിവരം",
+      thToken: "ടോക്കൺ",
+      thPatient: "രോഗി",
+      thDoctor: "ഡോക്ടർ",
+      thSpeciality: "വിഭാഗം",
+      thStatus: "സ്ഥിതി",
+      thETA: "സമയം",
+      statusInRoom: "അകത്ത്",
+      statusWaiting: "കാത്തിരിക്കുന്നു",
+      statusCompleted: "പൂർത്തിയായി",
+      queueNote:
+        "ഇത് ഒരു ഉദാഹരണം മാത്രം. യഥാർത്ഥ ആശുപത്രിയിൽ ടോക്കൺ വിളിക്കുമ്പോൾ പട്ടിക സ്വയം മാറും.",
+      specCardiology: "ഹാർട്ട്",
+      specOrtho: "എസ്ഥി",
+      specPedia: "കുട്ടികൾ",
+      specGeneral: "ജനറൽ",
+      sectionBookingTitle: "OP ടിക്കറ്റ് ബുക്ക് ചെയ്യുക",
+      labelName: "രോഗിയുടെ പേര്",
+      labelAge: "വയസ്",
+      labelDept: "വിഭാഗം",
+      labelDoctor: "ഡോക്ടർ",
+      labelDate: "തീയതി",
+      labelSlot: "സമയം",
+      optAnyDoc: "ഏതെങ്കിലും ഡോക്ടർ",
+      btnGenerate: "നിങ്ങളുടെ ടോക്കൺ എടുക്കുക",
+      bookingEmpty:
+        "നിങ്ങൾ ബുക്ക് ചെയ്താൽ നിങ്ങളുടെ ടോക്കൺ ഇവിടെ കാണിക്കും.",
+      bookingNote:
+        "ഈ ഡെമോ ഈ സിസ്റ്റത്തിലേയ്ക്ക് മാത്രം സേവ് ചെയ്യും. ഏത് പ്രശ്നവും സ്റ്റാഫിനോട് ചോദിക്കാം.",
+      sectionResourcesTitle: "ബെഡുകളും ഓക്സിജനും",
+      thResource: "വിഭാഗം",
+      thDetails: "വിശദാംശം",
+      resCasualtyBeds: "കാഷ്വൽട്ടി (എമർജൻസി)",
+      resCasualtyStatus: "3 ബെഡ് ഫ്രീ",
+      resCasualtyDetails: "9 ഉപയോഗം / 12 ആകെ",
+      resWardBeds: "വാർഡ് മുറികൾ",
+      resWardStatus: "നിരവധി ബെഡുകൾ ഫ്രീ",
+      resWardDetails: "56 ഉപയോഗം / 80 ആകെ",
+      resICUBeds: "ICU",
+      resICUStatus: "2 ബെഡ് ഫ്രീ",
+      resICUDetails: "വളരെ ഗുരുതരരായ രോഗികൾക്ക് മുൻഗണന.",
+      resOxygen: "ഓക്സിജൻ സിലിണ്ടർ",
+      resOxygenStatus: "26 ഉപയോഗത്തിൽ",
+      resOxygenDetails: "10 ബാക്കപ്പ് ആയി റെഡിയായി",
+      resBlood: "ബ്ലഡ്ബാങ്ക്",
+      resBloodStatus: "ശരി",
+      resBloodDetails: "O- , B- കുറവ്, ബാക്കി ശരിയായി.",
+      updatesTitle: "പ്രധാന സന്ദേശങ്ങൾ",
+      msg1:
+        "ശരീരാവസ്ഥ വളരെ മോശമാണെങ്കിൽ ക്യൂയിൽ മാത്രം നിൽക്കാതെ നേരിട്ട് കാഷ്വൽട്ടി ഡെസ്കിലേക്ക് പോകുക.",
+      msg2:
+        "ഈ സ്ക്രീൻ മനസ്സിലാകില്ലെങ്കിൽ ഹെൽപ് ഡെസ്കിന് കാണിക്കുക.",
+      msg3:
+        "കുട്ടികൾ, ഗർഭിണികൾ, വളരെ വയസ്സായവർക്ക് മുൻഗണന ലഭിക്കാം.",
+      msg4:
+        "മുകളിൽ വലത് വശത്ത് നിന്ന് നിങ്ങൾക്ക് ഏത് സമയവും ഭാഷ മാറ്റാം.",
+      popupTitle: "ഡോക്ടർ വൈകി എത്തും",
+      popupHighlight:
+        "ഇന്ന് ഓർത്തോപ്പഡിക്സ് ഡോക്ടർ ഏകദേശം 30 മിനിറ്റ് വൈകി OP ആരംഭിക്കും.",
+      popupDetails1:
+        "നിങ്ങളുടെ ടോക്കൺ കാണിക്കുന്ന സമയത്തേക്കാൾ വൈകി വിളിക്കാം. സ്ക്രീൻ നോക്കുകയോ ഹെൽപ് ഡെസ്കിനോട് ചോദിക്കുകയോ ചെയ്യുക.",
+      popupDetails2:
+        "വേദന വളരെ ശക്തമാണെങ്കിൽ ഇപ്പോൾ തന്നെ കാഷ്വൽട്ടി ഡെസ്കിലേക്ക് പോകുക.",
+      popupDismiss: "ശരി",
+      popupViewQueue: "ക്യൂയിലേക്ക് മടങ്ങുക",
+      helpTitle: "ഈ സ്ക്രീൻ എങ്ങനെ ഉപയോഗിക്കാം",
+      helpHighlight:
+        "താഴെ കാണുന്ന Queue, Booking, Beds കാർഡുകളിൽ ഒന്നെന്തെങ്കിലും തിരഞ്ഞെടുക്കുക. സ്റ്റാഫ് എല്ലായ്പ്പോഴും സഹായിക്കും.",
+      helpDetails1:
+        "സാധാരണ OP സന്ദർശനങ്ങൾക്ക് ആദ്യം \"Book a visit\" കാർഡ് ഉപയോഗിച്ച് ടോക്കൺ എടുക്കുക.",
+      helpDetails2:
+        "വളരെ അസുഖം തോന്നുകയോ ശക്തമായ വേദനയോ ഉണ്ടെങ്കിൽ നേരിട്ട് കാഷ്വൽട്ടി ഡെസ്കിലേക്ക് പോകുക.",
+      helpGoBooking: "ബുക്കിംഗിലേക്കു പോകുക",
+      alertFill: "ദയവായി പേര്, വയസ്, തീയതി എന്നിവ പൂരിപ്പിക്കുക.",
+      alertToken: "നിങ്ങളുടെ ടോക്കൺ നമ്പർ"
+    }
+  };
+
+  let currentLang = "en";
+
+  function applyTranslations() {
+    const elems = document.querySelectorAll("[data-i18n]");
+    elems.forEach((el) => {
+      const key = el.getAttribute("data-i18n");
+      if (translations[currentLang][key]) {
+        el.textContent = translations[currentLang][key];
+      }
+    });
+  }
+
+  langSelect.addEventListener("change", () => {
+    currentLang = langSelect.value;
+    applyTranslations();
+    loadBookingsFromServer();
+  });
+
+  // Initial load
+  applyTranslations();
+  prefillDraft();
+  loadBookingsFromServer();
+</script>
+
+</body>
+</html>

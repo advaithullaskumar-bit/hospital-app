@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hospital Queue Management System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg-main: #f1f5f9;
+            --bg-card: #ffffff;
+            --primary: #047857;        /* teal/green – trust, health */
+            --primary-soft: #d1fae5;
+            --primary-dark: #065f46;
+            --accent: #0ea5e9;         /* soft blue */
+            --accent-soft: #e0f2fe;
+            --danger: #b91c1c;
+            --danger-soft: #fee2e2;
+            --warning: #b45309;
+            --warning-soft: #ffedd5;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border-soft: #e5e7eb;
+            --radius-lg: 14px;
+            --radius-md: 10px;
+            --shadow-soft: 0 10px 25px rgba(15,23,42,0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top left, #e0f2fe 0, #f1f5f9 45%, #ecfdf5 100%);
+            color: var(--text-main);
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(15,118,110,0.96);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(15,23,42,0.25);
+        }
+
+        header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        header .logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: radial-gradient(circle at 30% 30%, #bbf7d0, #0f766e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        header .status {
+            font-size: 12px;
+            text-align: right;
+        }
+
+        header .status span {
+            background: rgba(15,23,42,0.35);
+            padding: 4px 10px;
+            border-radius: 999px;
+            margin-left: 8px;
+            font-size: 11px;
+        }
+
+        .page {
+            display: flex;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* Sidebar */
+        nav {
+            width: 260px;
+            max-width: 100%;
+            background: rgba(15,23,42,0.96);
+            color: #e5e7eb;
+            padding: 16px 14px;
+            box-shadow: 4px 0 16px rgba(15,23,42,0.4);
+        }
+
+        nav h2 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            margin: 12px 0 6px;
+            color: #9ca3af;
+        }
+
+        .nav-section {
+            margin-bottom: 12px;
+        }
+
+        .nav-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .nav-link span {
+            font-size: 10px;
+            background: #1f2937;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
+
+        .nav-link:hover {
+            background: #111827;
+            transform: translateX(2px);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(90deg, #047857, #0ea5e9);
+            color: white;
+        }
+
+        .nav-link.active span {
+            background: rgba(15,23,42,0.5);
+        }
+
+        /* Main layout */
+        main {
+            flex: 1;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .cards-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 12px 14px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(148,163,184,0.25);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .card h3 {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .card-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+
+        .card-icon.green {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .card-icon.red {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .card-icon.blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .card-icon.orange {
+            background: #ffedd5;
+            color: #c05621;
+        }
+
+        .card .value {
+            font-size: 22px;
+            font-weight: 650;
+            margin-bottom: 3px;
+        }
+
+        .card .sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .layout-2col {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            gap: 16px;
+        }
+
+        .section {
+            background: rgba(255,255,255,0.96);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+            box-shadow: var(--shadow-soft);
+            border: 1px solid rgba(148,163,184,0.25);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 8px;
+        }
+
+        .section-header h2 {
+            font-size: 15px;
+        }
+
+        .section-header small {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: #0369a1;
+            white-space: nowrap;
+        }
+
+        .badge.green {
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+
+        .badge.red {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .badge.orange {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 6px 4px;
+        }
+
+        th {
+            border-bottom: 1px solid var(--border-soft);
+            font-weight: 600;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+        }
+
+        .pill.waiting {
+            background: #eef2ff;
+            color: #4f46e5;
+        }
+
+        .pill.in-room {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .pill.completed {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .pill.late {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .pill.early {
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+        }
+
+        .pill.on-leave {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .pill.available {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .pill.full {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .pill.low {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .booking-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px 12px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .booking-form label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .booking-form input,
+        .booking-form select {
+            width: 100%;
+            padding: 7px 9px;
+            border-radius: 8px;
+            border: 1px solid var(--border-soft);
+            font-size: 13px;
+            background: #f9fafb;
+        }
+
+        .booking-form input:focus,
+        .booking-form select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(14,165,233,0.2);
+            background: #ffffff;
+        }
+
+        .booking-form button {
+            grid-column: 1 / -1;
+            padding: 9px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 4px;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+        }
+
+        .booking-form button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(15,23,42,0.22);
+        }
+
+        .booking-form button:active {
+            transform: translateY(0);
+            box-shadow: none;
+            opacity: 0.9;
+        }
+
+        .notifications {
+            font-size: 12px;
+            list-style: none;
+            margin-top: 6px;
+        }
+
+        .notifications li {
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed var(--border-soft);
+        }
+
+        .notifications time {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        .notes {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* Popup (Modal) using :target */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,23,42,0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+            z-index: 80;
+        }
+
+        .overlay:target {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .popup {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 95%;
+            max-width: 420px;
+            padding: 18px 18px 14px;
+            box-shadow: 0 18px 40px rgba(15,23,42,0.45);
+            position: relative;
+            animation: popIn 0.25s ease-out;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: translateY(8px) scale(0.96);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .popup h2 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .popup p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .popup .highlight {
+            background: var(--accent-soft);
+            color: #075985;
+            padding: 6px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .popup .details {
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .popup-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .popup-actions a {
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            text-decoration: none;
+        }
+
+        .popup-actions .secondary {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .popup-actions .primary {
+            background: var(--primary);
+            color: #ecfdf5;
+        }
+
+        .popup .close {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            text-decoration: none;
+            font-size: 18px;
+            color: var(--text-muted);
+        }
+
+        .popup .close:hover {
+            color: var(--danger);
+        }
+
+        .popup-trigger {
+            font-size: 11px;
+            color: var(--accent);
+            text-decoration: none;
+            margin-left: 8px;
+        }
+
+        .popup-trigger:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .cards-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .layout-2col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 850px) {
+            .page {
+                flex-direction: column;
+            }
+            nav {
+                width: 100%;
+                display: flex;
+                overflow-x: auto;
+                white-space: nowrap;
+                border-radius: 0 0 16px 16px;
+            }
+            .nav-section {
+                min-width: 180px;
+                padding-right: 10px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+            header .status {
+                text-align: left;
+            }
+            main {
+                padding: 14px;
+            }
+            .cards-row {
+                grid-template-columns: 1fr;
+            }
+            .booking-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand">
+        <div class="logo">HC</div>
+        <div>
+            <h1>CityCare Hospital · Live Queue</h1>
+            <div style="font-size:11px; opacity:0.9;">Queue & resource dashboard</div>
+        </div>
+    </div>
+    <div class="status">
+        System Status:
+        <span>Online · Auto refresh every 30s</span>
+    </div>
+</header>
+
+<div class="page">
+    <!-- Sidebar -->
+    <nav>
+        <div class="nav-section">
+            <h2>Queues</h2>
+            <div class="nav-link active">
+                <span>OPD Queue</span>
+                <span>Live</span>
+            </div>
+            <div class="nav-link">
+                <span>Casualty / Emergency</span>
+                <span>High</span>
+            </div>
+            <div class="nav-link">
+                <span>Lab & Diagnostics</span>
+                <span>Normal</span>
+            </div>
+            <div class="nav-link">
+                <span>Pharmacy Billing</span>
+                <span>Low</span>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <h2>Booking</h2>
+            <div class="nav-link">
+                <span>Doctor Appointment</span>
+            </div>
+            <div class="nav-link">
+                <span>OP Ticket Tracking</span>
+            </div>
+            <div class="nav-link">
+                <span>Room / Bed Booking</span>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <h2>Resources</h2>
+            <div class="nav-link">
+                <span>Doctors & Availability</span>
+            </div>
+            <div class="nav-link">
+                <span>Beds & ICU</span>
+            </div>
+            <div class="nav-link">
+                <span>Oxygen & Ventilators</span>
+            </div>
+            <div class="nav-link">
+                <span>Blood Bank</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main>
+
+        <!-- Summary cards -->
+        <section class="cards-row">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Patients Waiting (OPD)</h3>
+                    <div class="card-icon.green card-icon">👨‍⚕️</div>
+                </div>
+                <div class="value">18</div>
+                <div class="sub">Avg wait: 14 min · 5 doctors active</div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Casualty Beds</h3>
+                    <div class="card-icon.orange card-icon">🚑</div>
+                </div>
+                <div class="value">3 / 12 free</div>
+                <div class="sub">High rush · triage in effect</div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Oxygen Cylinders</h3>
+                    <div class="card-icon.blue card-icon">🩺</div>
+                </div>
+                <div class="value">26</div>
+                <div class="sub">10 in reserve · monitor every 2h</div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Doctors On Leave</h3>
+                    <div class="card-icon.red card-icon">⚠️</div>
+                </div>
+                <div class="value">4</div>
+                <div class="sub">Queues auto-rerouted to backups</div>
+            </div>
+        </section>
+
+        <!-- Live queue + booking -->
+        <section class="layout-2col">
+
+            <!-- Live queue -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Live OPD Queue Tracking</h2>
+                    <div>
+                        <span class="badge green">Live feed</span>
+                        <small>Last updated: 2 min ago</small>
+                        <a href="#popup-doctor-delay" class="popup-trigger">View delay notice</a>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Token</th>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Speciality</th>
+                        <th>Status</th>
+                        <th>ETA</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>OP-021</td>
+                        <td>Rahul M.</td>
+                        <td>Dr. Ananya Rao</td>
+                        <td>Cardiology</td>
+                        <td><span class="pill in-room">In room</span></td>
+                        <td>–</td>
+                    </tr>
+                    <tr>
+                        <td>OP-022</td>
+                        <td>Priya K.</td>
+                        <td>Dr. Ananya Rao</td>
+                        <td>Cardiology</td>
+                        <td><span class="pill waiting">Waiting</span></td>
+                        <td>6 min</td>
+                    </tr>
+                    <tr>
+                        <td>OP-045</td>
+                        <td>Mohammed A.</td>
+                        <td>Dr. Suresh Iyer</td>
+                        <td>Orthopedics</td>
+                        <td><span class="pill waiting">Waiting</span></td>
+                        <td>12 min</td>
+                    </tr>
+                    <tr>
+                        <td>OP-052</td>
+                        <td>Lakshmi N.</td>
+                        <td>Dr. Kavya Menon</td>
+                        <td>Pediatrics</td>
+                        <td><span class="pill waiting">Waiting</span></td>
+                        <td>8 min</td>
+                    </tr>
+                    <tr>
+                        <td>OP-010</td>
+                        <td>Arun V.</td>
+                        <td>Dr. Meena Das</td>
+                        <td>General Medicine</td>
+                        <td><span class="pill completed">Completed</span></td>
+                        <td>–</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p class="notes">
+                    For production, this table would auto-refresh via API calls and update positions, ETAs, and statuses in real time.
+                </p>
+            </section>
+
+            <!-- Booking section -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Appointment & OP Ticket Booking</h2>
+                    <small><span class="badge">Demo form · Frontend only</span></small>
+                </div>
+
+                <form class="booking-form">
+                    <div>
+                        <label for="pname">Patient name</label>
+                        <input id="pname" type="text" placeholder="Enter patient name">
+                    </div>
+                    <div>
+                        <label for="page">Age</label>
+                        <input id="page" type="number" min="0" placeholder="Age">
+                    </div>
+                    <div>
+                        <label for="dept">Department</label>
+                        <select id="dept">
+                            <option>Cardiology</option>
+                            <option>Orthopedics</option>
+                            <option>Pediatrics</option>
+                            <option>General Medicine</option>
+                            <option>Dermatology</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="doc">Doctor</label>
+                        <select id="doc">
+                            <option>Dr. Ananya Rao</option>
+                            <option>Dr. Suresh Iyer</option>
+                            <option>Dr. Kavya Menon</option>
+                            <option>Any available doctor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="date">Date</label>
+                        <input id="date" type="date">
+                    </div>
+                    <div>
+                        <label for="slot">Time slot</label>
+                        <select id="slot">
+                            <option>09:00 – 10:00</option>
+                            <option>10:00 – 11:00</option>
+                            <option>11:00 – 12:00</option>
+                            <option>14:00 – 15:00</option>
+                        </select>
+                    </div>
+                    <button type="button">Generate OP Ticket (Demo)</button>
+                </form>
+
+                <p class="notes">
+                    After integrating with a backend, this button would generate a unique OP ticket, assign token numbers, and push notifications (SMS/app) for updates and delays.
+                </p>
+            </section>
+
+        </section>
+
+        <!-- Doctors + resources -->
+        <section class="layout-2col">
+
+            <!-- Doctors -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Doctors & Availability</h2>
+                    <small><span class="badge.orange badge">Today’s schedule overview</span></small>
+                </div>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Doctor</th>
+                        <th>Dept</th>
+                        <th>OP Timings</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Dr. Ananya Rao</td>
+                        <td>Cardiology</td>
+                        <td>09:00 – 13:00</td>
+                        <td><span class="pill early">Arrived early</span></td>
+                    </tr>
+                    <tr>
+                        <td>Dr. Suresh Iyer</td>
+                        <td>Orthopedics</td>
+                        <td>10:00 – 14:00</td>
+                        <td><span class="pill late">Coming late (10:30)</span></td>
+                    </tr>
+                    <tr>
+                        <td>Dr. Kavya Menon</td>
+                        <td>Pediatrics</td>
+                        <td>09:30 – 13:30</td>
+                        <td><span class="pill available">On time</span></td>
+                    </tr>
+                    <tr>
+                        <td>Dr. Meena Das</td>
+                        <td>General Medicine</td>
+                        <td>15:00 – 19:00</td>
+                        <td><span class="pill.on-leave pill">On leave</span></td>
+                    </tr>
+                    <tr>
+                        <td>Dr. Arvind Sen</td>
+                        <td>Critical Care</td>
+                        <td>On call</td>
+                        <td><span class="pill available">Available</span></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- Resources + notifications -->
+            <section class="section">
+                <div class="section-header">
+                    <h2>Resources & Alert Center</h2>
+                    <small><span class="badge.green badge">Hospital overview</span></small>
+                </div>
+
+                <table style="margin-bottom:8px;">
+                    <thead>
+                    <tr>
+                        <th>Resource</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Casualty beds</td>
+                        <td><span class="pill low">3 free</span></td>
+                        <td>9 occupied / 12 total</td>
+                    </tr>
+                    <tr>
+                        <td>Ward beds</td>
+                        <td><span class="pill available">24 free</span></td>
+                        <td>56 occupied / 80 total</td>
+                    </tr>
+                    <tr>
+                        <td>ICU beds</td>
+                        <td><span class="pill low">2 free</span></td>
+                        <td>High priority monitoring</td>
+                    </tr>
+                    <tr>
+                        <td>Oxygen cylinders</td>
+                        <td><span class="pill low">26 in use</span></td>
+                        <td>10 backup in store</td>
+                    </tr>
+                    <tr>
+                        <td>Blood bank</td>
+                        <td><span class="pill available">Stable</span></td>
+                        <td>O- and B- low, others normal</td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <h3 style="font-size:13px; margin:6px 0;">Real-time notifications (examples)</h3>
+                <ul class="notifications">
+                    <li>
+                        Dr. Suresh Iyer will arrive late by 30 minutes. All Orthopedics tokens auto-shifted. 
+                        <time>5 min ago</time>
+                    </li>
+                    <li>
+                        Casualty nearing capacity. Non-critical walk-ins redirected to OP triage. 
+                        <time>10 min ago</time>
+                    </li>
+                    <li>
+                        New oxygen cylinders added to inventory. 
+                        <time>30 min ago</time>
+                    </li>
+                    <li>
+                        Dr. Meena Das on leave today; backup duty assigned to Dr. Arvind Sen. 
+                        <time>45 min ago</time>
+                    </li>
+                </ul>
+            </section>
+
+        </section>
+
+    </main>
+</div>
+
+<!-- Popup: example doctor delay notification -->
+<div id="popup-doctor-delay" class="overlay">
+    <div class="popup">
+        <a class="close" href="#">&times;</a>
+        <h2>Doctor delay notification</h2>
+        <div class="highlight">
+            Orthopedics OP (Dr. Suresh Iyer) is delayed by 30 minutes.
+        </div>
+        <p class="details">
+            Tokens OP-040 to OP-055 have been automatically shifted by one slot. Updated ETAs are visible on the live queue screen and will be sent via SMS / app.
+        </p>
+        <p class="details">
+            If you are in severe pain or have an emergency symptom, please report to the casualty desk immediately.
+        </p>
+        <div class="popup-actions">
+            <a href="#" class="secondary">Dismiss</a>
+            <a href="#" class="primary">View updated queue</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nucleus — Waiting Room Display</title>
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --blue: #3b82f6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --card: rgba(255,255,255,0.05);
+    --border: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+  body { background: var(--bg); color: var(--text); min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+
+  header { display: flex; justify-content: space-between; align-items: center; padding: 1.2rem 2.5rem; border-bottom: 1px solid var(--border); }
+  .logo { font-size: 1.4rem; font-weight: 800; color: var(--blue); letter-spacing: -0.5px; display: flex; align-items: center; gap: 0.6rem; }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .clock { font-size: 1.8rem; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+
+  main { display: grid; grid-template-columns: 1.4fr 1fr; gap: 2rem; padding: 2rem 2.5rem; align-items: start; }
+
+  .serving-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem; text-align: center; }
+  .serving-label { font-size: 0.85rem; font-weight: 700; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem; }
+  .serving-token { font-size: 6rem; font-weight: 900; color: var(--blue); line-height: 1; letter-spacing: -2px; transition: all 0.4s; }
+  .serving-token.emergency { color: var(--red); animation: pulse-red 1.5s infinite; }
+  @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .serving-dept { font-size: 1.5rem; font-weight: 600; color: var(--muted); margin-top: 0.75rem; }
+  .serving-status { display: inline-block; margin-top: 1.2rem; background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); padding: 0.4rem 1.4rem; border-radius: 999px; font-size: 0.9rem; font-weight: 700; }
+  .standby { color: var(--muted) !important; }
+
+  .right-col { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .next-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; }
+  .section-label { font-size: 0.75rem; font-weight: 700; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1rem; }
+  .next-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+  .next-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid var(--border); }
+  .next-token { font-size: 1.3rem; font-weight: 800; color: var(--text); }
+  .next-dept { font-size: 0.85rem; color: var(--muted); }
+  .badge-urgent { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); padding: 2px 10px; border-radius: 999px; font-size: 0.7rem; font-weight: 700; }
+  .empty-queue { color: var(--muted); text-align: center; padding: 1.5rem 0; font-size: 0.9rem; }
+
+  .resources-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; }
+  .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .res-item { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 1rem; border: 1px solid var(--border); }
+  .res-name { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .res-count { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1.2; }
+  .res-bar-bg { height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-top: 0.5rem; }
+  .res-bar { height: 4px; border-radius: 2px; background: var(--green); transition: width 0.6s; }
+  .res-bar.amber { background: var(--amber); }
+  .res-bar.red { background: var(--red); }
+
+  footer { border-top: 1px solid var(--border); padding: 0.8rem 2.5rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--muted); }
+  .pulse-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; animation: blink 2s infinite; vertical-align: middle; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <span class="logo-dot"></span>
+    NUCLEUS HEALTH · CityCare Hospital
+  </div>
+  <div class="clock" id="clock">--:--</div>
+</header>
+
+<main>
+  <div class="serving-card">
+    <div class="serving-label">Now serving</div>
+    <div class="serving-token standby" id="serving-token">--</div>
+    <div class="serving-dept" id="serving-dept">Standby</div>
+    <div class="serving-status" id="serving-status">Waiting for next patient</div>
+  </div>
+
+  <div class="right-col">
+    <div class="next-card">
+      <div class="section-label">Up next</div>
+      <div class="next-grid" id="next-grid">
+        <div class="empty-queue">Loading queue...</div>
+      </div>
+    </div>
+
+    <div class="resources-card">
+      <div class="section-label">Resource status</div>
+      <div class="res-grid" id="res-grid">
+        <div class="empty-queue" style="grid-column:1/-1">Loading...</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span><span class="pulse-dot"></span>Live — refreshes every 10 seconds</span>
+  <span>Nucleus Health OS · Do not use for medical decisions</span>
+</footer>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.getHours().toString().padStart(2,'0') + ':' +
+      now.getMinutes().toString().padStart(2,'0') + ':' +
+      now.getSeconds().toString().padStart(2,'0');
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  async function fetchData() {
+    try {
+      const res = await fetch('/api/tv-data');
+      const data = await res.json();
+
+      // Serving
+      const tokenEl = document.getElementById('serving-token');
+      const deptEl = document.getElementById('serving-dept');
+      const statusEl = document.getElementById('serving-status');
+      if (data.serving) {
+        tokenEl.textContent = data.serving.token;
+        tokenEl.className = 'serving-token' + (data.serving.priority === 'High' ? ' emergency' : '');
+        deptEl.textContent = data.serving.dept;
+        statusEl.textContent = data.serving.priority === 'High' ? 'EMERGENCY — Priority Care' : 'In Consultation';
+        statusEl.style.background = data.serving.priority === 'High' ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)';
+        statusEl.style.color = data.serving.priority === 'High' ? '#ef4444' : '#22c55e';
+        statusEl.style.borderColor = data.serving.priority === 'High' ? 'rgba(239,68,68,0.3)' : 'rgba(34,197,94,0.3)';
+      } else {
+        tokenEl.textContent = '--';
+        tokenEl.className = 'serving-token standby';
+        deptEl.textContent = 'Standby';
+        statusEl.textContent = 'Waiting for next patient';
+        statusEl.style.background = '';
+        statusEl.style.color = '';
+        statusEl.style.borderColor = '';
+      }
+
+      // Next
+      const nextGrid = document.getElementById('next-grid');
+      if (data.next && data.next.length > 0) {
+        nextGrid.innerHTML = data.next.map(n =>
+          `<div class="next-row">
+            <div>
+              <div class="next-token">${n.token}</div>
+              <div class="next-dept">${n.dept}</div>
+            </div>
+            ${n.priority === 'High' ? '<span class="badge-urgent">URGENT</span>' : ''}
+          </div>`
+        ).join('');
+      } else {
+        nextGrid.innerHTML = '<div class="empty-queue">No patients in queue</div>';
+      }
+
+      // Resources
+      const resGrid = document.getElementById('res-grid');
+      if (data.resources && data.resources.length > 0) {
+        resGrid.innerHTML = data.resources.map(r => {
+          const pct = r.total > 0 ? Math.round((r.used / r.total) * 100) : 0;
+          const barClass = pct >= 90 ? 'red' : pct >= 60 ? 'amber' : '';
+          return `<div class="res-item">
+            <div class="res-name">${r.name}</div>
+            <div class="res-count">${r.total}</div>
+            <div class="res-bar-bg"><div class="res-bar ${barClass}" style="width:${Math.min(pct,100)}%"></div></div>
+          </div>`;
+        }).join('');
+      } else {
+        resGrid.innerHTML = '<div class="empty-queue" style="grid-column:1/-1">No resource data</div>';
+      }
+    } catch(e) {}
+  }
+
+  fetchData();
+  setInterval(fetchData, 10000);
+</script>
+</body>
+</html>
